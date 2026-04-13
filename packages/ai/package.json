@@ -28,7 +28,8 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@google/generative-ai": "^0.24.1"
+    "@google/generative-ai": "^0.24.1",
+    "@nebula/shared": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^25.6.0",

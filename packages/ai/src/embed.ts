@@ -1,4 +1,4 @@
-import { parseEnv } from './env.js';
+import { parseEnv } from '@nebula/shared/env';
 import { makeUsage } from './pricing.js';
 import { voyageEmbed } from './voyage.js';
 import type { EmbedOptions, EmbedResult } from './types.js';

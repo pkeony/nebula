@@ -1,5 +1,5 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
-import { parseEnv } from './env.js';
+import { parseEnv } from '@nebula/shared/env';
 import { makeUsage } from './pricing.js';
 import type { AiMessage, ChatOptions, ChatResult, StreamEvent } from './types.js';
 
