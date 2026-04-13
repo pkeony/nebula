@@ -230,11 +230,40 @@ nebula/
 - convert-tools 타입가드 적용 (캐스팅 제거)
 - graceful shutdown 추가
 
-### Phase 4: 프론트엔드 + 시각화 (진행 예정)
+### Phase 4: 프론트엔드 + 시각화
 
-- `apps/web/` — Next.js
-- React Flow로 Agent 실행 흐름 실시간 시각화
-- 채팅 UI + 도구 실행 결과 표시
+**커밋:** `8368caf` 프론트엔드 — Next.js + React Flow 실시간 Agent 시각화
+
+- `apps/web/` — Next.js 15 + React 19
+- React Flow(@xyflow/react)로 Agent 실행 흐름 실시간 시각화
+- 7종 커스텀 노드: Start, Thinking, ToolCall, ToolResult, Response, Done, Error
+- 채팅 UI — MessageBubble, ChatInput, MessageList
+- SSE 클라이언트 — fetch + ReadableStream (EventSource는 GET 전용)
+- useAgentStream 리듀서 — 이벤트 → 메시지 누적 + 상태 관리
+- 다크 테마 CSS 변수 시스템
+
+### Phase 5: 멀티턴 대화 + 스트리밍 + 에러 UI
+
+**멀티턴 대화 — 서버 사이드 대화 저장소:**
+- In-memory `Map<conversationId, Conversation>` — TTL 1시간, 5분 간격 정리
+- `POST /agent/run` 확장: `{ message, conversationId? }` → 대화 이어가기
+- Agent executor 시그니처 변경: `execute(userMessage)` → `execute(messages[])` — 전체 이력 전달
+- 프론트엔드: done 이벤트에서 conversationId 수신 → 다음 요청에 자동 포함
+- "New Chat" 시 conversationId 리셋 → 새 대화 시작
+
+**스트리밍 delta — streamChat() 함수:**
+- `@nebula/ai`에 `streamChat()` 추가 — `generateContentStream` + functionCall 감지
+- `StreamChatEvent` 타입: delta(글자 단위) | function_calls(도구 호출) | done(완료)
+- Agent executor를 `chat()` → `streamChat()`으로 전환
+- 텍스트 delta 실시간 yield + 스트림 종료 후 functionCall 일괄 처리
+- thinking 텍스트도 실시간 스트리밍 가능
+
+**에러 UI — ErrorCode 체계:**
+- `ErrorCode` 타입: `rate_limit | server_error | validation | timeout | aborted | unknown`
+- Gemini API 에러 → ErrorCode 자동 매핑 (429→rate_limit, 503→server_error)
+- `retryable` 플래그 → 프론트엔드 "다시 시도" 버튼 조건부 표시
+- HTTP 에러(SSE 연결 전)와 스트리밍 중 에러 통합 처리
+- 에러 코드별 한국어 메시지 (사용자 친화적 UX)
 
 ---
 

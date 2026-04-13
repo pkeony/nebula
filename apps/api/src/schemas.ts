@@ -8,6 +8,7 @@ import { z } from 'zod';
  */
 export const RunRequestSchema = z.object({
   message: z.string().min(1).max(10_000),
+  conversationId: z.string().uuid().optional(),
 });
 
 export type RunRequest = z.infer<typeof RunRequestSchema>;

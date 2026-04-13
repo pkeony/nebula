@@ -1,6 +1,29 @@
-import type { AgentEvent } from '@/types/agent-events';
+import type { AgentEvent, ErrorCode } from '@/types/agent-events';
 
 const API_URL = process.env['NEXT_PUBLIC_API_URL'] ?? 'http://localhost:3001';
+
+/**
+ * HTTP status → ErrorCode 매핑.
+ */
+function httpStatusToErrorCode(status: number): ErrorCode {
+  if (status === 429) return 'rate_limit';
+  if (status >= 500) return 'server_error';
+  if (status === 400) return 'validation';
+  return 'unknown';
+}
+
+/**
+ * HTTP status → 한국어 에러 메시지.
+ */
+function httpStatusToMessage(status: number, statusText: string): string {
+  switch (status) {
+    case 429: return '요청이 너무 많습니다. 잠시 후 다시 시도해 주세요.';
+    case 503: return '서버에 일시적인 문제가 있습니다. 잠시 후 다시 시도해 주세요.';
+    case 500: return '서버 내부 오류가 발생했습니다.';
+    case 400: return '잘못된 요청입니다.';
+    default: return `API 오류: ${status} ${statusText}`;
+  }
+}
 
 /**
  * POST /agent/run SSE 스트림 클라이언트.
@@ -9,17 +32,31 @@ const API_URL = process.env['NEXT_PUBLIC_API_URL'] ?? 'http://localhost:3001';
 export async function streamAgentRun(
   message: string,
   onEvent: (event: AgentEvent) => void,
-  options?: { signal?: AbortSignal },
+  options?: { signal?: AbortSignal; conversationId?: string },
 ): Promise<void> {
+  const body: Record<string, string> = { message };
+  if (options?.conversationId) {
+    body['conversationId'] = options.conversationId;
+  }
+
   const res = await fetch(`${API_URL}/agent/run`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ message }),
+    body: JSON.stringify(body),
     signal: options?.signal,
   });
 
   if (!res.ok) {
-    throw new Error(`API error: ${res.status} ${res.statusText}`);
+    const code = httpStatusToErrorCode(res.status);
+    const retryable = code === 'rate_limit' || code === 'server_error';
+    const errorEvent: AgentEvent = {
+      type: 'error',
+      message: httpStatusToMessage(res.status, res.statusText),
+      code,
+      retryable,
+    };
+    onEvent(errorEvent);
+    return;
   }
 
   const reader = res.body?.getReader();

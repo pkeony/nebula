@@ -53,6 +53,12 @@ export type StreamEvent =
   | { type: 'delta'; text: string }
   | { type: 'done'; usage: AiUsage; model: ModelId };
 
+/** streamChat() 이벤트 — 텍스트 delta + functionCall 감지 + 완료 */
+export type StreamChatEvent =
+  | { type: 'delta'; text: string }
+  | { type: 'function_calls'; calls: AiFunctionCall[] }
+  | { type: 'done'; usage: AiUsage; model: ModelId; text: string };
+
 /* ── Function Calling (Agent Loop 지원) ────────────────────── */
 
 /** 도메인-무지 함수 선언 — MCP Tool 에서 변환되어 LLM 에 전달 */

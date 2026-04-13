@@ -19,6 +19,7 @@ import type {
   ChatOptions,
   ChatResult,
   StreamEvent,
+  StreamChatEvent,
 } from './types.js';
 
 /**
@@ -201,5 +202,65 @@ export async function* stream(
     type: 'done',
     usage: makeUsage(opts.model, inputTokens, outputTokens),
     model: opts.model,
+  };
+}
+
+/**
+ * Gemini streaming chat + function calling 감지.
+ *
+ * Agent executor 용 — 텍스트 delta 를 실시간 yield 하면서,
+ * 스트림 종료 후 functionCall 이 있으면 function_calls 이벤트를 yield.
+ * 최종 done 이벤트에 누적 텍스트 + usage 포함.
+ */
+export async function* streamChat(
+  messages: AiMessage[],
+  opts: ChatOptions,
+): AsyncIterable<StreamChatEvent> {
+  const client = getClient();
+  const model = client.getGenerativeModel({ model: opts.model });
+  const { tools, toolConfig } = buildToolArgs(opts);
+
+  const result = await model.generateContentStream({
+    systemInstruction: opts.system ?? undefined,
+    contents: toGeminiContents(messages),
+    generationConfig: {
+      maxOutputTokens: opts.maxTokens ?? 1024,
+      temperature: opts.temperature ?? 0.2,
+    },
+    tools,
+    toolConfig,
+  });
+
+  let fullText = '';
+
+  for await (const chunk of result.stream) {
+    try {
+      const text = chunk.text();
+      if (text) {
+        fullText += text;
+        yield { type: 'delta', text };
+      }
+    } catch {
+      // functionCall 전용 청크 — text() 호출 시 에러. 무시.
+    }
+  }
+
+  const final = await result.response;
+
+  // functionCall 감지
+  const functionCalls = extractFunctionCalls(() => final.functionCalls());
+  if (functionCalls?.length) {
+    yield { type: 'function_calls', calls: functionCalls };
+  }
+
+  const usage = final.usageMetadata;
+  const inputTokens = usage?.promptTokenCount ?? 0;
+  const outputTokens = usage?.candidatesTokenCount ?? 0;
+
+  yield {
+    type: 'done',
+    usage: makeUsage(opts.model, inputTokens, outputTokens),
+    model: opts.model,
+    text: fullText,
   };
 }

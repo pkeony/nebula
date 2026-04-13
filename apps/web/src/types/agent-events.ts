@@ -12,10 +12,12 @@ export interface AiUsage {
   costUsd: number;
 }
 
+export type ErrorCode = 'rate_limit' | 'server_error' | 'validation' | 'timeout' | 'aborted' | 'unknown';
+
 export type AgentEvent =
   | { type: 'thinking'; content: string }
   | { type: 'tool_call'; id: string; tool: string; args: Record<string, unknown> }
   | { type: 'tool_result'; id: string; tool: string; result: string; isError: boolean }
   | { type: 'delta'; text: string }
-  | { type: 'done'; usage: AiUsage; model: ModelId; iterations: number }
-  | { type: 'error'; message: string };
+  | { type: 'done'; usage: AiUsage; model: ModelId; iterations: number; conversationId?: string }
+  | { type: 'error'; message: string; code: ErrorCode; retryable: boolean };

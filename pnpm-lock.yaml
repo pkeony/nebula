@@ -16,6 +16,9 @@ importers:
       '@nebula/agent':
         specifier: workspace:*
         version: link:../../packages/agent
+      '@nebula/ai':
+        specifier: workspace:*
+        version: link:../../packages/ai
       '@nebula/mcp-client':
         specifier: workspace:*
         version: link:../../packages/mcp-client

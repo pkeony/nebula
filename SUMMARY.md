@@ -15,8 +15,12 @@
 - **@nebula/agent** — Agent Loop 직접 구현 (think→act→observe), AsyncIterable 이벤트 스트리밍
 - **apps/api** — Fastify + SSE 스트리밍 (POST /agent/run), graceful shutdown
 
+- **apps/web** — Next.js + React Flow 실시간 Agent 시각화, 채팅 UI
+- **멀티턴 대화** — 서버 in-memory 대화 저장소, conversationId 기반 대화 이어가기
+- **스트리밍 delta** — streamChat() 함수로 글자 단위 실시간 스트리밍 (chat() → streamChat() 전환)
+- **에러 UI** — ErrorCode 체계 (rate_limit/server_error 등), 한국어 메시지, 재시도 버튼
+
 ## 진행 예정
 
-- **apps/web** — Next.js + React Flow 시각화, 채팅 UI
 - **배포** — Docker multi-stage + GitHub Actions CI/CD
 - **테스트** — Vitest 단위/통합 테스트
