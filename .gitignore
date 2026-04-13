@@ -1,0 +1,7 @@
+node_modules/
+dist/
+*.Zone.Identifier
+*:Zone.Identifier
+.env
+.env.*
+!.env.example
