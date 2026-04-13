@@ -12,6 +12,7 @@ const MCP_SERVERS: ServerConfig[] = [
     name: 'nebula',
     command: 'node',
     args: ['packages/mcp-server/dist/cli.js'],
+    cwd: new URL('../../../../', import.meta.url).pathname,
   },
 ];
 
@@ -34,17 +35,21 @@ export const agentRoutes: FastifyPluginAsync = async (app) => {
 
     const { message } = parsed.data;
 
+    // Fastify 응답 제어를 raw 소켓으로 넘김 (SSE 스트리밍)
+    reply.hijack();
+
     // SSE 헤더 설정
     reply.raw.writeHead(200, {
       'Content-Type': 'text/event-stream',
       'Cache-Control': 'no-cache',
       Connection: 'keep-alive',
       'X-Accel-Buffering': 'no', // nginx 프록시 버퍼링 방지
+      'Access-Control-Allow-Origin': '*',
     });
 
-    // 클라이언트 disconnect 시 abort
+    // 클라이언트 disconnect 시 abort (hijack 후에는 reply.raw 사용)
     const abortController = new AbortController();
-    request.raw.on('close', () => abortController.abort());
+    reply.raw.on('close', () => abortController.abort());
 
     const registry = new McpRegistry();
 

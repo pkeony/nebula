@@ -1,0 +1,82 @@
+@import 'tailwindcss';
+@import '@xyflow/react/dist/style.css';
+
+:root {
+  --color-bg: #0a0a0a;
+  --color-surface: #141414;
+  --color-surface-hover: #1a1a1a;
+  --color-border: #262626;
+  --color-text: #ededed;
+  --color-text-secondary: #a1a1a1;
+
+  --color-thinking: #3b82f6;
+  --color-tool-call: #f59e0b;
+  --color-tool-result-ok: #22c55e;
+  --color-tool-result-err: #ef4444;
+  --color-response: #a855f7;
+  --color-done: #6b7280;
+  --color-error: #ef4444;
+}
+
+body {
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+/* ── Agent Flow 커스텀 노드 ──────────────────────── */
+
+.agent-node {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-left: 3px solid;
+  border-radius: 8px;
+  width: 320px;
+  font-size: 13px;
+  animation: node-enter 0.3s ease-out;
+}
+
+.agent-node-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--color-border);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-secondary);
+}
+
+.agent-node-label {
+  color: var(--color-text-secondary);
+}
+
+.agent-node-body {
+  padding: 10px 12px;
+  color: var(--color-text);
+  line-height: 1.5;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+@keyframes node-enter {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* React Flow 엣지 색상 */
+.react-flow__edge-path {
+  stroke: var(--color-border) !important;
+}
+
+.react-flow__edge.animated .react-flow__edge-path {
+  stroke: var(--color-thinking) !important;
+}
