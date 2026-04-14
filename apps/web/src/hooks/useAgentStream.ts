@@ -6,7 +6,10 @@ import { streamAgentRun } from '@/lib/sse-client';
 
 /* ── 상태 타입 ─────────────────────────────────────── */
 
+let msgIdCounter = 0;
+
 export interface ChatMessage {
+  id: string;
   role: 'user' | 'assistant';
   content: string;
 }
@@ -46,7 +49,7 @@ function reducer(state: AgentStreamState, action: Action): AgentStreamState {
       return {
         ...state,
         status: 'streaming',
-        messages: [...state.messages, { role: 'user', content: action.message }],
+        messages: [...state.messages, { id: `msg-${++msgIdCounter}`, role: 'user', content: action.message }],
         events: [],
         error: null,
         errorCode: null,
@@ -64,7 +67,7 @@ function reducer(state: AgentStreamState, action: Action): AgentStreamState {
         if (last?.role === 'assistant') {
           msgs[msgs.length - 1] = { ...last, content: last.content + event.text };
         } else {
-          msgs.push({ role: 'assistant', content: event.text });
+          msgs.push({ id: `msg-${++msgIdCounter}`, role: 'assistant', content: event.text });
         }
         return { ...state, messages: msgs, events };
       }

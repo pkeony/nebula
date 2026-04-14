@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import type { AgentEvent } from '@/types/agent-events';
 
 interface ProcessTimelineProps {
@@ -36,12 +36,11 @@ function buildSteps(events: AgentEvent[]): TimelineStep[] {
       });
     } else if (event.type === 'tool_call') {
       const toolName = event.tool;
-      const hasResult = events.some(
+      const resultEvent = events.find(
         (e) => e.type === 'tool_result' && e.id === event.id,
       );
-      const hasError = events.some(
-        (e) => e.type === 'tool_result' && e.id === event.id && e.isError,
-      );
+      const hasResult = !!resultEvent;
+      const hasError = hasResult && resultEvent.type === 'tool_result' && resultEvent.isError;
 
       // 직전 스텝이 같은 도구면 그룹에 합치기
       const prev = steps[steps.length - 1];
@@ -149,7 +148,7 @@ function StatusBadge({ step }: { step: TimelineStep }) {
 
 export function ProcessTimeline({ events, isStreaming }: ProcessTimelineProps) {
   const bottomRef = useRef<HTMLDivElement>(null);
-  const steps = buildSteps(events);
+  const steps = useMemo(() => buildSteps(events), [events]);
   const hasContent = steps.length > 0;
 
   // 새 스텝 추가 시 자동 스크롤

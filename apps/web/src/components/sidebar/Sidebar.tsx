@@ -48,11 +48,11 @@ export function Sidebar({ sessions, activeSessionId, onNewChat, onSwitch, onDele
         {sessions.map((session) => {
           const isActive = session.id === activeSessionId;
           return (
-            <div
+            <button
               key={session.id}
               onClick={() => onSwitch(session.id)}
               className={`
-                group flex items-center gap-3 rounded-xl px-3 py-2.5 cursor-pointer transition-all duration-200
+                group flex items-center gap-3 rounded-xl px-3 py-2.5 w-full text-left transition-all duration-200
                 ${isActive
                   ? 'bg-[var(--color-surface-lowest)] text-[var(--color-primary)] shadow-sm'
                   : 'text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-lowest)]/60'
@@ -86,7 +86,7 @@ export function Sidebar({ sessions, activeSessionId, onNewChat, onSwitch, onDele
                   <span className="material-symbols-outlined text-sm">close</span>
                 </button>
               )}
-            </div>
+            </button>
           );
         })}
       </nav>

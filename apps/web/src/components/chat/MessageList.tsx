@@ -13,7 +13,7 @@ export function MessageList({ messages }: MessageListProps) {
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+  }, [messages.length]);
 
   return (
     <div className="flex-1 overflow-y-auto px-8 py-10 space-y-6">
@@ -34,8 +34,8 @@ export function MessageList({ messages }: MessageListProps) {
           </div>
         </div>
       )}
-      {messages.map((msg, i) => (
-        <MessageBubble key={i} message={msg} />
+      {messages.map((msg) => (
+        <MessageBubble key={msg.id} message={msg} />
       ))}
       <div ref={bottomRef} />
     </div>

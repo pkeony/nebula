@@ -1,4 +1,5 @@
 import Markdown from 'react-markdown';
+import rehypeSanitize from 'rehype-sanitize';
 import type { ChatMessage } from '@/hooks/useAgentStream';
 
 interface MessageBubbleProps {
@@ -23,7 +24,7 @@ export function MessageBubble({ message }: MessageBubbleProps) {
     <div className="flex justify-start">
       <div className="w-full bg-[var(--color-surface-lowest)] rounded-2xl px-8 py-8 shadow-[0_8px_30px_rgba(45,51,53,0.04)]">
         <div className="prose-nebula">
-          <Markdown>{message.content}</Markdown>
+          <Markdown rehypePlugins={[rehypeSanitize]}>{message.content}</Markdown>
         </div>
       </div>
     </div>

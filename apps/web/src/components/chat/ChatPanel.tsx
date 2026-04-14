@@ -33,7 +33,7 @@ export function ChatPanel({ state, onSend, onRetry, onReset }: ChatPanelProps) {
   return (
     <div className="flex flex-col h-full">
       {/* 헤더 — editorial minimal */}
-      <header className="flex items-center justify-between px-8 h-16">
+      <div className="flex items-center justify-between px-8 h-16">
         <div className="flex items-center gap-3">
           <div className="w-2 h-2 rounded-full bg-[var(--color-primary)]" />
           <span className="text-xs font-bold uppercase tracking-[0.12em] text-[var(--color-text-secondary)]">
@@ -47,7 +47,7 @@ export function ChatPanel({ state, onSend, onRetry, onReset }: ChatPanelProps) {
           <span className="material-symbols-outlined text-sm">add</span>
           New
         </button>
-      </header>
+      </div>
 
       {/* 메시지 목록 */}
       <MessageList messages={state.messages} />
@@ -64,7 +64,7 @@ export function ChatPanel({ state, onSend, onRetry, onReset }: ChatPanelProps) {
 
       {/* 에러 표시 */}
       {errorDisplay && (
-        <div className="mx-6 mb-2 px-5 py-3.5 rounded-2xl bg-[var(--color-error-container)]/8 flex items-center gap-3">
+        <div className="mx-6 mb-2 px-5 py-3.5 rounded-2xl bg-[rgba(250,116,111,0.08)] flex items-center gap-3">
           <span className="material-symbols-outlined text-[var(--color-error)] text-base">info</span>
           <span className="text-sm text-[var(--color-error)] flex-1 leading-relaxed">
             {errorDisplay.message}
