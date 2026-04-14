@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Handle, Position, type NodeProps } from '@xyflow/react';
 import type { ToolCallNodeData } from '@/types/graph';
+import { formatToolDisplay } from '@/utils/tool-labels';
 
 const PREVIEW_LENGTH = 100;
 
@@ -12,7 +13,7 @@ export function ToolCallNode({ data }: NodeProps & { data: ToolCallNodeData }) {
   const needsTruncate = fullArgs.length > PREVIEW_LENGTH;
   const display = expanded ? fullArgs : fullArgs.slice(0, PREVIEW_LENGTH) + (needsTruncate ? '…' : '');
 
-  const toolName = data.tool.replace(/__/g, '.').replace(/_/g, ' ');
+  const toolName = formatToolDisplay(data.tool);
 
   return (
     <div className="flow-node">

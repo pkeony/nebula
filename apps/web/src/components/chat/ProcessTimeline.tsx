@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef } from 'react';
 import type { AgentEvent } from '@/types/agent-events';
+import { formatToolDisplay } from '@/utils/tool-labels';
 
 interface ProcessTimelineProps {
   events: AgentEvent[];
@@ -88,22 +89,20 @@ function buildSteps(events: AgentEvent[]): TimelineStep[] {
   return steps;
 }
 
+/** formatToolDisplay를 래핑 — 타임라인용 */
 function formatToolName(tool: string): string {
-  return tool
-    .replace(/__/g, '.')
-    .replace(/_/g, ' ')
-    .replace(/\b\w/g, (c) => c.toUpperCase());
+  return formatToolDisplay(tool);
 }
 
 function getToolIcon(tool: string): string {
   const lower = tool.toLowerCase();
   if (lower.includes('search') || lower.includes('web')) return 'travel_explore';
-  if (lower.includes('read') || lower.includes('file')) return 'description';
-  if (lower.includes('code') || lower.includes('exec')) return 'terminal';
+  if (lower.includes('read') || lower.includes('file') || lower.includes('contents')) return 'description';
+  if (lower.includes('code') || lower.includes('exec') || lower.includes('command')) return 'terminal';
   if (lower.includes('database') || lower.includes('sql')) return 'database';
   if (lower.includes('list') || lower.includes('dir')) return 'folder_open';
   if (lower.includes('write')) return 'edit_note';
-  if (lower.includes('weather')) return 'cloud';
+  if (lower.includes('issue') || lower.includes('pull')) return 'bug_report';
   return 'neurology';
 }
 

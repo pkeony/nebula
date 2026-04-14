@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Handle, Position, type NodeProps } from '@xyflow/react';
 import type { ToolResultNodeData } from '@/types/graph';
+import { formatToolDisplay } from '@/utils/tool-labels';
 
 const MAX_LINES = 3;
 
@@ -11,7 +12,7 @@ export function ToolResultNode({ data }: NodeProps & { data: ToolResultNodeData 
   const lines = data.result.split('\n');
   const needsTruncate = lines.length > MAX_LINES;
   const display = expanded ? data.result : lines.slice(0, MAX_LINES).join('\n');
-  const toolName = data.tool.replace(/__/g, '.').replace(/_/g, ' ');
+  const toolName = formatToolDisplay(data.tool);
 
   const accentColor = data.isError ? 'var(--color-error)' : 'var(--color-primary)';
   const iconBg = data.isError ? 'bg-[rgba(250,116,111,0.15)]' : 'bg-[var(--color-primary-container)]';

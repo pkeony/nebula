@@ -8,10 +8,17 @@ import { streamAgentRun } from '@/lib/sse-client';
 
 let msgIdCounter = 0;
 
+export interface ToolUsageSummary {
+  name: string;
+  count: number;
+}
+
 export interface ChatMessage {
   id: string;
   role: 'user' | 'assistant';
   content: string;
+  /** assistant 메시지에 도구 사용 요약 */
+  toolSummary?: ToolUsageSummary[];
 }
 
 export interface AgentStreamState {
@@ -73,9 +80,30 @@ function reducer(state: AgentStreamState, action: Action): AgentStreamState {
       }
 
       if (event.type === 'done') {
+        // 도구 사용 요약 생성
+        const toolCounts = new Map<string, number>();
+        for (const e of events) {
+          if (e.type === 'tool_call') {
+            const name = e.tool;
+            toolCounts.set(name, (toolCounts.get(name) ?? 0) + 1);
+          }
+        }
+        const toolSummary: ToolUsageSummary[] = [];
+        for (const [name, count] of toolCounts) {
+          toolSummary.push({ name, count });
+        }
+
+        // assistant 메시지에 요약 추가
+        const msgs = [...state.messages];
+        const last = msgs[msgs.length - 1];
+        if (last?.role === 'assistant' && toolSummary.length > 0) {
+          msgs[msgs.length - 1] = { ...last, toolSummary };
+        }
+
         return {
           ...state,
           status: 'done',
+          messages: msgs,
           events,
           conversationId: event.conversationId ?? state.conversationId,
         };
