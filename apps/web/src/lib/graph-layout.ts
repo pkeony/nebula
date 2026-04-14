@@ -81,10 +81,9 @@ export function buildGraph(
             isError: event.isError,
           },
         });
-        // tool_call → tool_result (좌→우)
+        // tool_call → tool_result (좌→우 가로 연결만)
         edges.push(makeEdge(callId, resultId));
-        // tool_result가 다음 메인 흐름의 소스
-        prevMainId = resultId;
+        // prevMainId는 tool_call로 유지 — 세로 흐름이 왼쪽 열에서만 내려감
         break;
       }
 
