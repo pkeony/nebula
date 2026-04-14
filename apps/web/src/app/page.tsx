@@ -8,12 +8,10 @@ import { Sidebar } from '@/components/sidebar/Sidebar';
 import { useAgentStream } from '@/hooks/useAgentStream';
 import { useSessions } from '@/hooks/useSessions';
 
-type ActiveTab = 'chat' | 'flow';
-
 export default function HomePage() {
   const { state, send, retry, reset, restore } = useAgentStream();
   const { sessions, activeSessionId, createSession, switchSession, deleteSession } = useSessions();
-  const [activeTab, setActiveTab] = useState<ActiveTab>('chat');
+  const [showFlowModal, setShowFlowModal] = useState(false);
 
   const handleNewChat = useCallback(() => {
     switchSession(createSession(), state);
@@ -37,10 +35,9 @@ export default function HomePage() {
     }
   }, [deleteSession, activeSessionId, reset]);
 
-  // Process Flow 표시 조건 (Chat 탭에서만)
   const isStreaming = state.status === 'streaming';
   const hasProcess = state.events.some((e) => e.type === 'tool_call' || e.type === 'thinking');
-  const showTimeline = activeTab === 'chat' && (hasProcess || isStreaming);
+  const showRightPanel = hasProcess || isStreaming;
 
   return (
     <div className="flex h-screen overflow-hidden bg-[var(--color-bg)]">
@@ -61,28 +58,6 @@ export default function HomePage() {
             <h2 className="text-lg font-extrabold font-[Manrope] text-[var(--color-primary)] tracking-tight">
               Nebula AI
             </h2>
-            <nav className="hidden lg:flex items-center gap-1">
-              <button
-                onClick={() => setActiveTab('chat')}
-                className={`text-sm px-3 py-1.5 rounded-lg transition-colors ${
-                  activeTab === 'chat'
-                    ? 'font-bold text-[var(--color-primary)] bg-[var(--color-primary-container)]/30'
-                    : 'text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-low)]'
-                }`}
-              >
-                Chat
-              </button>
-              <button
-                onClick={() => setActiveTab('flow')}
-                className={`text-sm px-3 py-1.5 rounded-lg transition-colors ${
-                  activeTab === 'flow'
-                    ? 'font-bold text-[var(--color-primary)] bg-[var(--color-primary-container)]/30'
-                    : 'text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-low)]'
-                }`}
-              >
-                Flow
-              </button>
-            </nav>
           </div>
           <div className="flex items-center gap-3">
             <button className="p-2 rounded-full hover:bg-[var(--color-surface-low)] transition-colors">
@@ -94,38 +69,66 @@ export default function HomePage() {
           </div>
         </header>
 
-        {/* 콘텐츠 */}
+        {/* 콘텐츠 — 채팅 + 오른쪽 패널 */}
         <div className="flex-1 flex overflow-hidden min-h-0">
-          {/* Chat 탭 */}
-          {activeTab === 'chat' && (
-            <>
-              <section className="flex-1 flex flex-col bg-[var(--color-surface-lowest)] min-w-0 overflow-hidden">
-                <ChatPanel state={state} onSend={send} onRetry={retry} onReset={handleNewChat} />
-              </section>
+          {/* 채팅 */}
+          <section className="flex-1 flex flex-col bg-[var(--color-surface-lowest)] min-w-0 overflow-hidden">
+            <ChatPanel state={state} onSend={send} onRetry={retry} onReset={handleNewChat} />
+          </section>
 
-              {/* Process Flow — 오른쪽 패널 */}
-              <aside
-                className={`
-                  hidden lg:flex flex-col flex-shrink-0 bg-[var(--color-surface-low)] overflow-y-auto overflow-x-hidden
-                  transition-all duration-500 ease-out
-                  ${showTimeline ? 'w-96 opacity-100' : 'w-0 opacity-0'}
-                `}
-              >
-                {showTimeline && (
-                  <ProcessTimeline events={state.events} isStreaming={isStreaming} />
-                )}
-              </aside>
-            </>
-          )}
-
-          {/* Flow 탭 */}
-          {activeTab === 'flow' && (
-            <div className="flex-1 bg-[var(--color-surface-low)]">
-              <FlowPanel events={state.events} messages={state.messages} status={state.status} />
-            </div>
-          )}
+          {/* 오른쪽 패널 — Process Flow */}
+          <aside
+            className={`
+              hidden lg:flex flex-col flex-shrink-0 bg-[var(--color-surface-low)] overflow-hidden
+              transition-all duration-500 ease-out
+              ${showRightPanel ? 'w-96 opacity-100' : 'w-0 opacity-0'}
+            `}
+          >
+            {showRightPanel && (
+              <ProcessTimeline
+                events={state.events}
+                isStreaming={isStreaming}
+                onShowFlow={() => setShowFlowModal(true)}
+              />
+            )}
+          </aside>
         </div>
       </main>
+
+      {/* Flow Detail 모달 */}
+      {showFlowModal && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center p-8"
+          onClick={() => setShowFlowModal(false)}
+        >
+          {/* 백드롭 */}
+          <div className="absolute inset-0 bg-[var(--color-text)]/40 backdrop-blur-sm" />
+
+          {/* 모달 본체 */}
+          <div
+            className="relative w-full max-w-6xl h-[80vh] bg-[var(--color-surface-lowest)] rounded-2xl shadow-2xl overflow-hidden flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* 모달 헤더 */}
+            <div className="flex items-center justify-between px-8 h-14 flex-shrink-0">
+              <h3 className="font-[Manrope] font-bold text-sm text-[var(--color-text)]">
+                Flow Detail
+              </h3>
+              <button
+                onClick={() => setShowFlowModal(false)}
+                className="p-2 rounded-xl hover:bg-[var(--color-surface-low)] transition-colors"
+              >
+                <span className="material-symbols-outlined text-[var(--color-text-secondary)]">close</span>
+              </button>
+            </div>
+
+            {/* Flow 시각화 */}
+            <div className="flex-1">
+              <FlowPanel events={state.events} messages={state.messages} status={state.status} />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

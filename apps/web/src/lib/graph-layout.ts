@@ -1,24 +1,12 @@
 import type { Edge } from '@xyflow/react';
 import type { AgentEvent } from '@/types/agent-events';
 import type { AgentNode } from '@/types/graph';
-import { VERTICAL_SPACING, HORIZONTAL_SPACING, NODE_WIDTH, MAX_PER_ROW } from '@/components/flow/nodes/node-styles';
+import { ROW_SPACING, PAIR_GAP, NODE_WIDTH } from '@/components/flow/nodes/node-styles';
 
 /**
- * 좌→우 wrap 레이아웃 위치 계산.
- * 한 행에 MAX_PER_ROW 개까지 배치, 다 차면 다음 행으로.
- */
-function calcPosition(index: number): { x: number; y: number } {
-  const col = index % MAX_PER_ROW;
-  const row = Math.floor(index / MAX_PER_ROW);
-  return {
-    x: col * (NODE_WIDTH + HORIZONTAL_SPACING),
-    y: row * VERTICAL_SPACING,
-  };
-}
-
-/**
- * AgentEvent 배열을 React Flow 노드/엣지로 변환.
- * 좌→우 진행, 행이 차면 다음 줄로 wrap.
+ * 세로 흐름 레이아웃.
+ * - 메인 노드(user, thinking, response, done)는 중앙 열
+ * - tool_call(왼쪽) → tool_result(오른쪽) 좌우 페어링
  */
 export function buildGraph(
   events: AgentEvent[],
@@ -28,56 +16,64 @@ export function buildGraph(
   const edges: Edge[] = [];
   let responseNodeId: string | null = null;
 
-  // Start 노드 (사용자 메시지)
+  const centerX = 0;
+  const leftX = -(NODE_WIDTH / 2 + PAIR_GAP / 2);
+  const rightX = NODE_WIDTH / 2 + PAIR_GAP / 2;
+  let row = 0;
+
+  // Start 노드 (사용자 메시지) — 중앙
   const startId = 'start';
   nodes.push({
     id: startId,
     type: 'start',
-    position: calcPosition(0),
+    position: { x: centerX - NODE_WIDTH / 2, y: row * ROW_SPACING },
     data: { message: userMessage },
   });
 
-  let prevId = startId;
-  let nodeIndex = 1;
+  let prevMainId = startId;
 
   for (const event of events) {
-    const pos = calcPosition(nodeIndex);
-
     switch (event.type) {
       case 'thinking': {
-        const id = `thinking-${nodeIndex}`;
+        row++;
+        const id = `thinking-${row}`;
         nodes.push({
           id,
           type: 'thinking',
-          position: pos,
+          position: { x: centerX - NODE_WIDTH / 2, y: row * ROW_SPACING },
           data: { content: event.content },
         });
-        edges.push(makeEdge(prevId, id));
-        prevId = id;
-        nodeIndex++;
+        edges.push(makeEdge(prevMainId, id));
+        prevMainId = id;
         break;
       }
 
       case 'tool_call': {
-        const id = `tool-call-${event.id}`;
+        row++;
+        const callId = `tool-call-${event.id}`;
         nodes.push({
-          id,
+          id: callId,
           type: 'toolCall',
-          position: pos,
+          position: { x: leftX - NODE_WIDTH / 2, y: row * ROW_SPACING },
           data: { toolCallId: event.id, tool: event.tool, args: event.args },
         });
-        edges.push(makeEdge(prevId, id));
-        prevId = id;
-        nodeIndex++;
+        // 메인 흐름 → tool_call
+        edges.push(makeEdge(prevMainId, callId));
+        prevMainId = callId;
         break;
       }
 
       case 'tool_result': {
-        const id = `tool-result-${event.id}`;
+        const resultId = `tool-result-${event.id}`;
+        const callId = `tool-call-${event.id}`;
+        // tool_call과 같은 행에 오른쪽 배치
+        const callNode = nodes.find((n) => n.id === callId);
+        const resultY = callNode ? callNode.position.y : row * ROW_SPACING;
+
         nodes.push({
-          id,
+          id: resultId,
           type: 'toolResult',
-          position: pos,
+          position: { x: rightX - NODE_WIDTH / 2, y: resultY },
           data: {
             toolCallId: event.id,
             tool: event.tool,
@@ -85,29 +81,35 @@ export function buildGraph(
             isError: event.isError,
           },
         });
-        // tool_call 노드에서 연결
-        const callNodeId = `tool-call-${event.id}`;
-        edges.push(makeEdge(callNodeId, id));
-        prevId = id;
-        nodeIndex++;
+        // tool_call → tool_result (좌→우, right→left 핸들)
+        edges.push({
+          id: `e-${callId}-${resultId}`,
+          source: callId,
+          sourceHandle: 'right',
+          target: resultId,
+          targetHandle: 'left',
+          type: 'smoothstep',
+          animated: true,
+          style: { stroke: 'var(--color-secondary)', strokeWidth: 1.5, opacity: 0.3 },
+        });
+        // tool_result가 다음 메인 흐름의 소스
+        prevMainId = resultId;
         break;
       }
 
       case 'delta': {
-        // delta 는 하나의 Response 노드에 누적
         if (!responseNodeId) {
-          responseNodeId = `response-${nodeIndex}`;
+          row++;
+          responseNodeId = `response-${row}`;
           nodes.push({
             id: responseNodeId,
             type: 'response',
-            position: pos,
+            position: { x: centerX - NODE_WIDTH / 2, y: row * ROW_SPACING },
             data: { text: event.text },
           });
-          edges.push(makeEdge(prevId, responseNodeId));
-          prevId = responseNodeId;
-          nodeIndex++;
+          edges.push(makeEdge(prevMainId, responseNodeId));
+          prevMainId = responseNodeId;
         } else {
-          // 기존 Response 노드의 텍스트에 누적
           const responseNode = nodes.find((n) => n.id === responseNodeId);
           if (responseNode && responseNode.type === 'response') {
             responseNode.data = {
@@ -120,11 +122,12 @@ export function buildGraph(
       }
 
       case 'done': {
-        const id = `done-${nodeIndex}`;
+        row++;
+        const id = `done-${row}`;
         nodes.push({
           id,
           type: 'done',
-          position: pos,
+          position: { x: centerX - NODE_WIDTH / 2, y: row * ROW_SPACING },
           data: {
             inputTokens: event.usage.inputTokens,
             outputTokens: event.usage.outputTokens,
@@ -133,22 +136,21 @@ export function buildGraph(
             iterations: event.iterations,
           },
         });
-        edges.push(makeEdge(prevId, id));
-        prevId = id;
-        nodeIndex++;
+        edges.push(makeEdge(prevMainId, id));
+        prevMainId = id;
         break;
       }
 
       case 'error': {
-        const id = `error-${nodeIndex}`;
+        row++;
+        const id = `error-${row}`;
         nodes.push({
           id,
           type: 'error',
-          position: pos,
+          position: { x: centerX - NODE_WIDTH / 2, y: row * ROW_SPACING },
           data: { message: event.message },
         });
-        edges.push(makeEdge(prevId, id));
-        nodeIndex++;
+        edges.push(makeEdge(prevMainId, id));
         break;
       }
     }
@@ -157,12 +159,13 @@ export function buildGraph(
   return { nodes, edges };
 }
 
-function makeEdge(source: string, target: string): Edge {
+function makeEdge(source: string, target: string, type: string = 'smoothstep'): Edge {
   return {
     id: `e-${source}-${target}`,
     source,
     target,
-    type: 'smoothstep',
+    type,
     animated: true,
+    style: { stroke: 'var(--color-primary)', strokeWidth: 1.5, opacity: 0.4 },
   };
 }

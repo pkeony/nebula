@@ -1,32 +1,35 @@
 import { Handle, Position, type NodeProps } from '@xyflow/react';
 import type { DoneNodeData } from '@/types/graph';
-import { NODE_CONFIG } from './node-styles';
 
 export function DoneNode({ data }: NodeProps & { data: DoneNodeData }) {
-  const cfg = NODE_CONFIG.done;
   return (
-    <div className="agent-node" style={{ borderLeftColor: cfg.color }}>
+    <div className="flow-node">
+      <div className="flow-node-accent bg-[var(--color-primary)]" />
       <Handle type="target" position={Position.Top} />
-      <div className="agent-node-header">
-        <span>{cfg.icon}</span>
-        <span className="agent-node-label">{cfg.label}</span>
+      <div className="flow-node-header">
+        <div className="flow-node-icon bg-[var(--color-primary-container)] text-[var(--color-primary)]">
+          <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>
+            check_circle
+          </span>
+        </div>
+        <span className="flow-node-title">Done</span>
       </div>
-      <div className="agent-node-body text-xs space-y-1">
+      <div className="flow-node-body text-[11px] space-y-1.5">
         <div className="flex justify-between">
-          <span className="opacity-60">Model</span>
-          <span>{data.model}</span>
+          <span className="opacity-50">Model</span>
+          <span className="font-medium">{data.model}</span>
         </div>
         <div className="flex justify-between">
-          <span className="opacity-60">Iterations</span>
-          <span>{data.iterations}</span>
+          <span className="opacity-50">Iterations</span>
+          <span className="font-medium">{data.iterations}</span>
         </div>
         <div className="flex justify-between">
-          <span className="opacity-60">Tokens</span>
-          <span>{data.inputTokens.toLocaleString()} in / {data.outputTokens.toLocaleString()} out</span>
+          <span className="opacity-50">Tokens</span>
+          <span className="font-medium">{data.inputTokens.toLocaleString()} in / {data.outputTokens.toLocaleString()} out</span>
         </div>
         <div className="flex justify-between">
-          <span className="opacity-60">Cost</span>
-          <span>${data.costUsd.toFixed(4)}</span>
+          <span className="opacity-50">Cost</span>
+          <span className="font-medium">${data.costUsd.toFixed(4)}</span>
         </div>
       </div>
     </div>

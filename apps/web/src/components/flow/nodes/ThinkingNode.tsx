@@ -3,32 +3,33 @@
 import { useState } from 'react';
 import { Handle, Position, type NodeProps } from '@xyflow/react';
 import type { ThinkingNodeData } from '@/types/graph';
-import { NODE_CONFIG } from './node-styles';
 
 const MAX_LINES = 3;
 
 export function ThinkingNode({ data }: NodeProps & { data: ThinkingNodeData }) {
   const [expanded, setExpanded] = useState(false);
-  const cfg = NODE_CONFIG.thinking;
   const lines = data.content.split('\n');
   const needsTruncate = lines.length > MAX_LINES;
   const display = expanded ? data.content : lines.slice(0, MAX_LINES).join('\n');
 
   return (
-    <div className="agent-node" style={{ borderLeftColor: cfg.color }}>
+    <div className="flow-node">
+      <div className="flow-node-accent bg-[var(--color-primary)]" />
       <Handle type="target" position={Position.Top} />
-      <div className="agent-node-header">
-        <span>{cfg.icon}</span>
-        <span className="agent-node-label">{cfg.label}</span>
+      <div className="flow-node-header">
+        <div className="flow-node-icon bg-[var(--color-primary-container)] text-[var(--color-primary)]">
+          <span className="material-symbols-outlined">psychology</span>
+        </div>
+        <span className="flow-node-title">Thinking</span>
       </div>
-      <div className="agent-node-body">
+      <div className="flow-node-body opacity-70 italic">
         {display}
         {needsTruncate && (
           <button
             onClick={() => setExpanded(!expanded)}
-            className="block mt-1 text-xs text-[var(--color-thinking)] hover:underline"
+            className="block mt-1 text-[10px] text-[var(--color-primary)] hover:underline"
           >
-            {expanded ? '접기' : '더보기...'}
+            {expanded ? '접기' : '더보기…'}
           </button>
         )}
       </div>

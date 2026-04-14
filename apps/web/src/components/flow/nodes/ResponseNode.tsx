@@ -1,17 +1,18 @@
 import { Handle, Position, type NodeProps } from '@xyflow/react';
 import type { ResponseNodeData } from '@/types/graph';
-import { NODE_CONFIG } from './node-styles';
 
 export function ResponseNode({ data }: NodeProps & { data: ResponseNodeData }) {
-  const cfg = NODE_CONFIG.response;
   return (
-    <div className="agent-node" style={{ borderLeftColor: cfg.color }}>
+    <div className="flow-node">
+      <div className="flow-node-accent bg-[var(--color-tertiary)]" />
       <Handle type="target" position={Position.Top} />
-      <div className="agent-node-header">
-        <span>{cfg.icon}</span>
-        <span className="agent-node-label">{cfg.label}</span>
+      <div className="flow-node-header">
+        <div className="flow-node-icon bg-[var(--color-tertiary-container)] text-[var(--color-tertiary)]">
+          <span className="material-symbols-outlined">chat_bubble</span>
+        </div>
+        <span className="flow-node-title">Response</span>
       </div>
-      <div className="agent-node-body whitespace-pre-wrap">{data.text}</div>
+      <div className="flow-node-body whitespace-pre-wrap">{data.text}</div>
       <Handle type="source" position={Position.Bottom} />
     </div>
   );

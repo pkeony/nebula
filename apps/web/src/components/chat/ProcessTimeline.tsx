@@ -6,6 +6,7 @@ import type { AgentEvent } from '@/types/agent-events';
 interface ProcessTimelineProps {
   events: AgentEvent[];
   isStreaming: boolean;
+  onShowFlow?: () => void;
 }
 
 interface TimelineStep {
@@ -146,7 +147,7 @@ function StatusBadge({ step }: { step: TimelineStep }) {
   return null;
 }
 
-export function ProcessTimeline({ events, isStreaming }: ProcessTimelineProps) {
+export function ProcessTimeline({ events, isStreaming, onShowFlow }: ProcessTimelineProps) {
   const bottomRef = useRef<HTMLDivElement>(null);
   const steps = useMemo(() => buildSteps(events), [events]);
   const hasContent = steps.length > 0;
@@ -301,6 +302,15 @@ export function ProcessTimeline({ events, isStreaming }: ProcessTimelineProps) {
               <p className="text-xs text-[var(--color-text-secondary)] leading-relaxed">
                 {toolCount} tool call{toolCount !== 1 ? 's' : ''} across {steps.filter((s) => s.type === 'tool_group').length} step{steps.filter((s) => s.type === 'tool_group').length !== 1 ? 's' : ''}, {doneCount} completed.
               </p>
+              {onShowFlow && (
+                <button
+                  onClick={onShowFlow}
+                  className="mt-4 flex items-center gap-2 text-[11px] font-bold text-[var(--color-primary)] hover:text-[var(--color-on-primary-container)] transition-colors"
+                >
+                  <span className="material-symbols-outlined text-sm">account_tree</span>
+                  View Flow Detail
+                </button>
+              )}
             </div>
           </div>
         )}
