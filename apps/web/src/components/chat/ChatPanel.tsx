@@ -11,7 +11,6 @@ interface ChatPanelProps {
   onReset: () => void;
 }
 
-/** 에러 코드별 한국어 메시지 */
 function getErrorDisplay(state: AgentStreamState): { message: string; showRetry: boolean } | null {
   if (state.status !== 'error' || !state.error) return null;
 
@@ -33,36 +32,42 @@ export function ChatPanel({ state, onSend, onRetry, onReset }: ChatPanelProps) {
   return (
     <div className="flex flex-col h-full">
       {/* 헤더 */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--color-border)]">
-        <h1 className="text-sm font-semibold tracking-tight">Nebula Agent</h1>
+      <header className="flex items-center justify-between px-6 h-20 bg-[var(--color-surface)]">
+        <h1 className="text-xl font-extrabold font-[Manrope] text-[var(--color-primary)] tracking-tight">
+          Agent Chat
+        </h1>
         <button
           onClick={onReset}
-          className="text-xs text-[var(--color-text-secondary)] hover:text-[var(--color-text)] transition-colors"
+          className="text-xs px-3 py-1.5 rounded-full text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-high)] transition-colors"
         >
           New Chat
         </button>
-      </div>
+      </header>
 
       {/* 메시지 목록 */}
       <MessageList messages={state.messages} />
 
       {/* 상태 표시 */}
       {state.status === 'streaming' && (
-        <div className="px-4 py-1 text-xs text-[var(--color-text-secondary)]">
-          에이전트 실행 중...
+        <div className="px-6 py-2 flex items-center gap-2">
+          <span className="flex h-2 w-2 rounded-full bg-[var(--color-primary)] animate-pulse" />
+          <span className="text-xs text-[var(--color-text-secondary)] font-medium">
+            에이전트 실행 중...
+          </span>
         </div>
       )}
 
       {/* 에러 표시 */}
       {errorDisplay && (
-        <div className="px-4 py-2 flex items-center gap-2">
-          <span className="text-xs text-[var(--color-error)] flex-1">
+        <div className="mx-6 mb-2 px-4 py-3 rounded-xl bg-[var(--color-error-container)]/10 flex items-center gap-3">
+          <span className="material-symbols-outlined text-[var(--color-error)] text-lg">warning</span>
+          <span className="text-sm text-[var(--color-error)] flex-1">
             {errorDisplay.message}
           </span>
           {errorDisplay.showRetry && (
             <button
               onClick={onRetry}
-              className="text-xs px-3 py-1 rounded-md bg-[var(--color-surface)] border border-[var(--color-border)] text-[var(--color-text)] hover:bg-[var(--color-border)] transition-colors whitespace-nowrap"
+              className="text-xs px-4 py-1.5 rounded-full bg-[var(--color-surface-lowest)] text-[var(--color-text)] shadow-sm hover:shadow-md transition-all whitespace-nowrap"
             >
               다시 시도
             </button>

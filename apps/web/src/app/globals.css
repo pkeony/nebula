@@ -1,47 +1,89 @@
 @import 'tailwindcss';
 @import '@xyflow/react/dist/style.css';
 
-:root {
-  --color-bg: #0a0a0a;
-  --color-surface: #141414;
-  --color-surface-hover: #1a1a1a;
-  --color-border: #262626;
-  --color-text: #ededed;
-  --color-text-secondary: #a1a1a1;
+/* ── Lumina Design System: "The Digital Sanctuary" ──────── */
 
-  --color-thinking: #3b82f6;
-  --color-tool-call: #f59e0b;
-  --color-tool-result-ok: #22c55e;
-  --color-tool-result-err: #ef4444;
-  --color-response: #a855f7;
-  --color-done: #6b7280;
-  --color-error: #ef4444;
+:root {
+  /* Surface hierarchy (light, tonal layering) */
+  --color-bg: #f8f9fa;
+  --color-surface: #f8f9fa;
+  --color-surface-low: #f1f4f5;
+  --color-surface-container: #ebeef0;
+  --color-surface-high: #e5e9eb;
+  --color-surface-highest: #dee3e6;
+  --color-surface-lowest: #ffffff;
+  --color-surface-hover: #e5e9eb;
+
+  /* Text */
+  --color-text: #2d3335;
+  --color-text-secondary: #5a6062;
+  --color-on-surface-variant: #5a6062;
+
+  /* Borders — ghost borders only (No-Line Rule) */
+  --color-border: rgba(173, 179, 181, 0.15);
+  --color-outline: #adb3b5;
+
+  /* Primary — nature green */
+  --color-primary: #46655e;
+  --color-primary-container: #c7eae1;
+  --color-on-primary: #e3fff7;
+  --color-on-primary-container: #385851;
+
+  /* Secondary */
+  --color-secondary: #516074;
+  --color-secondary-container: #d4e4fb;
+
+  /* Tertiary — warm earth */
+  --color-tertiary: #6a5d4f;
+  --color-tertiary-container: #fbe8d6;
+  --color-on-tertiary-container: #625447;
+
+  /* Agent event colors (muted, sanctuary-friendly) */
+  --color-thinking: #46655e;
+  --color-tool-call: #516074;
+  --color-tool-result-ok: #46655e;
+  --color-tool-result-err: #a83836;
+  --color-response: #6a5d4f;
+  --color-done: #5a6062;
+  --color-error: #a83836;
+  --color-error-container: #fa746f;
 }
 
 body {
   background: var(--color-bg);
   color: var(--color-text);
-  font-family: system-ui, -apple-system, sans-serif;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+h1, h2, h3 {
+  font-family: 'Manrope', system-ui, sans-serif;
+}
+
+/* ── Glass panel (Lumina signature) ─────────────────── */
+
+.glass-panel {
+  background: rgba(248, 249, 250, 0.8);
+  backdrop-filter: blur(20px);
 }
 
 /* ── Agent Flow 커스텀 노드 ──────────────────────── */
 
 .agent-node {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  background: var(--color-surface-lowest);
+  border: none;
   border-left: 3px solid;
-  border-radius: 8px;
+  border-radius: 1rem;
   width: 320px;
   font-size: 13px;
   animation: node-enter 0.3s ease-out;
+  box-shadow: 0 20px 40px rgba(45, 51, 53, 0.04);
 }
 
 .agent-node-header {
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 8px 12px;
-  border-bottom: 1px solid var(--color-border);
+  padding: 10px 14px;
   font-size: 11px;
   font-weight: 600;
   text-transform: uppercase;
@@ -54,9 +96,9 @@ body {
 }
 
 .agent-node-body {
-  padding: 10px 12px;
+  padding: 10px 14px;
   color: var(--color-text);
-  line-height: 1.5;
+  line-height: 1.6;
   max-height: 300px;
   overflow-y: auto;
   word-break: break-word;
@@ -75,9 +117,16 @@ body {
 
 /* React Flow 엣지 색상 */
 .react-flow__edge-path {
-  stroke: var(--color-border) !important;
+  stroke: var(--color-outline) !important;
+  opacity: 0.3;
 }
 
 .react-flow__edge.animated .react-flow__edge-path {
-  stroke: var(--color-thinking) !important;
+  stroke: var(--color-primary) !important;
+  opacity: 1;
+}
+
+/* React Flow 배경 */
+.react-flow__background {
+  background: var(--color-surface-low) !important;
 }

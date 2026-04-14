@@ -1,4 +1,4 @@
-/** 노드 타입별 색상 + 아이콘 상수 */
+/** 노드 타입별 색상 + 아이콘 (Lumina Design System) */
 
 export const NODE_CONFIG = {
   start: {
@@ -7,23 +7,23 @@ export const NODE_CONFIG = {
     icon: '💬',
   },
   thinking: {
-    color: 'var(--color-thinking)',
+    color: 'var(--color-primary)',
     label: 'Thinking',
     icon: '🧠',
   },
   toolCall: {
-    color: 'var(--color-tool-call)',
+    color: 'var(--color-secondary)',
     label: 'Tool Call',
     icon: '🔧',
   },
   toolResult: {
-    color: 'var(--color-tool-result-ok)',
-    errorColor: 'var(--color-tool-result-err)',
+    color: 'var(--color-primary)',
+    errorColor: 'var(--color-error)',
     label: 'Tool Result',
     icon: '📋',
   },
   response: {
-    color: 'var(--color-response)',
+    color: 'var(--color-tertiary)',
     label: 'Response',
     icon: '💬',
   },
