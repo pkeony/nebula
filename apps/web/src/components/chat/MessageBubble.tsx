@@ -1,3 +1,4 @@
+import Markdown from 'react-markdown';
 import type { ChatMessage } from '@/hooks/useAgentStream';
 
 interface MessageBubbleProps {
@@ -17,13 +18,12 @@ export function MessageBubble({ message }: MessageBubbleProps) {
     );
   }
 
-  // Assistant — Ethereal editorial card
+  // Assistant — Ethereal editorial card + Markdown
   return (
     <div className="flex justify-start">
       <div className="w-full bg-[var(--color-surface-lowest)] rounded-2xl px-8 py-8 shadow-[0_8px_30px_rgba(45,51,53,0.04)]">
-        {/* 응답 본문 — editorial typography */}
-        <div className="text-[var(--color-text)] text-[15px] leading-[1.8] whitespace-pre-wrap break-words font-light">
-          {message.content}
+        <div className="prose-nebula">
+          <Markdown>{message.content}</Markdown>
         </div>
       </div>
     </div>
