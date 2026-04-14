@@ -43,7 +43,7 @@ export function buildGraph(
           position: { x: centerX - NODE_WIDTH / 2, y: row * ROW_SPACING },
           data: { content: event.content },
         });
-        edges.push(makeEdge(prevMainId, id));
+        edges.push(makeZigzagEdge(prevMainId, id));
         prevMainId = id;
         break;
       }
@@ -58,7 +58,7 @@ export function buildGraph(
           data: { toolCallId: event.id, tool: event.tool, args: event.args },
         });
         // 메인 흐름 → tool_call
-        edges.push(makeEdge(prevMainId, callId));
+        edges.push(makeZigzagEdge(prevMainId, callId));
         prevMainId = callId;
         break;
       }
@@ -81,12 +81,8 @@ export function buildGraph(
             isError: event.isError,
           },
         });
-        // tool_call → tool_result (가로 → Right→Left)
-        edges.push({
-          ...makeEdge(callId, resultId),
-          sourceHandle: 'right',
-          targetHandle: 'left',
-        });
+        // tool_call → tool_result (가로 직선 →)
+        edges.push(makeHorizontalEdge(callId, resultId));
         // 세로 흐름은 왼쪽 열(tool_call)에서만 내려감
         break;
       }
@@ -101,7 +97,7 @@ export function buildGraph(
             position: { x: centerX - NODE_WIDTH / 2, y: row * ROW_SPACING },
             data: { text: event.text },
           });
-          edges.push(makeEdge(prevMainId, responseNodeId));
+          edges.push(makeZigzagEdge(prevMainId, responseNodeId));
           prevMainId = responseNodeId;
         } else {
           const responseNode = nodes.find((n) => n.id === responseNodeId);
@@ -130,7 +126,7 @@ export function buildGraph(
             iterations: event.iterations,
           },
         });
-        edges.push(makeEdge(prevMainId, id));
+        edges.push(makeZigzagEdge(prevMainId, id));
         prevMainId = id;
         break;
       }
@@ -144,7 +140,7 @@ export function buildGraph(
           position: { x: centerX - NODE_WIDTH / 2, y: row * ROW_SPACING },
           data: { message: event.message },
         });
-        edges.push(makeEdge(prevMainId, id));
+        edges.push(makeZigzagEdge(prevMainId, id));
         break;
       }
     }
@@ -153,19 +149,39 @@ export function buildGraph(
   return { nodes, edges };
 }
 
-function makeEdge(source: string, target: string): Edge {
+/** 세로/크로스 연결 — ㄱ자 직각 꺾임 */
+function makeZigzagEdge(source: string, target: string): Edge {
   return {
     id: `e-${source}-${target}`,
     source,
     target,
-    type: 'smoothstep',
+    type: 'zigzag',
     animated: false,
-    style: { stroke: '#2d3335', strokeWidth: 2 },
     markerEnd: {
       type: MarkerType.ArrowClosed,
-      width: 16,
-      height: 16,
-      color: '#2d3335',
+      width: 14,
+      height: 14,
+      color: '#46655e',
+    },
+  };
+}
+
+/** 가로 연결 — 직선 화살표 */
+function makeHorizontalEdge(source: string, target: string): Edge {
+  return {
+    id: `e-${source}-${target}`,
+    source,
+    sourceHandle: 'right',
+    target,
+    targetHandle: 'left',
+    type: 'smoothstep',
+    animated: false,
+    style: { stroke: '#46655e', strokeWidth: 2.5 },
+    markerEnd: {
+      type: MarkerType.ArrowClosed,
+      width: 14,
+      height: 14,
+      color: '#46655e',
     },
   };
 }

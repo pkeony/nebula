@@ -22,6 +22,11 @@ import { ToolResultNode } from './nodes/ToolResultNode';
 import { ResponseNode } from './nodes/ResponseNode';
 import { DoneNode } from './nodes/DoneNode';
 import { ErrorNode } from './nodes/ErrorNode';
+import { ZigzagEdge } from './edges/ZigzagEdge';
+
+const edgeTypes = {
+  zigzag: ZigzagEdge,
+};
 
 const nodeTypes: NodeTypes = {
   start: StartNode,
@@ -90,6 +95,7 @@ export function AgentFlowGraph({ events, messages, isDone }: AgentFlowGraphProps
       onNodesChange={onNodesChange}
       onEdgesChange={onEdgesChange}
       nodeTypes={nodeTypes}
+      edgeTypes={edgeTypes}
       fitView
       fitViewOptions={{ padding: 0.3 }}
       proOptions={{ hideAttribution: true }}
