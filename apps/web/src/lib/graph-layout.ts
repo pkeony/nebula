@@ -81,17 +81,8 @@ export function buildGraph(
             isError: event.isError,
           },
         });
-        // tool_call → tool_result (좌→우, right→left 핸들)
-        edges.push({
-          id: `e-${callId}-${resultId}`,
-          source: callId,
-          sourceHandle: 'right',
-          target: resultId,
-          targetHandle: 'left',
-          type: 'smoothstep',
-          animated: true,
-          style: { stroke: 'var(--color-secondary)', strokeWidth: 1.5, opacity: 0.3 },
-        });
+        // tool_call → tool_result (좌→우)
+        edges.push(makeEdge(callId, resultId));
         // tool_result가 다음 메인 흐름의 소스
         prevMainId = resultId;
         break;
@@ -159,13 +150,13 @@ export function buildGraph(
   return { nodes, edges };
 }
 
-function makeEdge(source: string, target: string, type: string = 'smoothstep'): Edge {
+function makeEdge(source: string, target: string): Edge {
   return {
     id: `e-${source}-${target}`,
     source,
     target,
-    type,
+    type: 'default',
     animated: true,
-    style: { stroke: 'var(--color-primary)', strokeWidth: 1.5, opacity: 0.4 },
+    style: { stroke: 'var(--color-primary)', strokeWidth: 1.5, opacity: 0.3 },
   };
 }

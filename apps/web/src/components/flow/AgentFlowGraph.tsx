@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef } from 'react';
 import {
   ReactFlow,
+  ConnectionMode,
   useNodesState,
   useEdgesState,
   useReactFlow,
@@ -97,6 +98,7 @@ export function AgentFlowGraph({ events, messages, isDone }: AgentFlowGraphProps
       fitView
       fitViewOptions={{ padding: 0.3 }}
       proOptions={{ hideAttribution: true }}
+      connectionMode={ConnectionMode.Loose}
       nodesDraggable={false}
       nodesConnectable={false}
       elementsSelectable={false}
