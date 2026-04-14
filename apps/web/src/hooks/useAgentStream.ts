@@ -37,7 +37,8 @@ type Action =
   | { type: 'SEND'; message: string }
   | { type: 'EVENT'; event: AgentEvent }
   | { type: 'STREAM_ERROR'; error: string }
-  | { type: 'RESET' };
+  | { type: 'RESET' }
+  | { type: 'RESTORE'; state: AgentStreamState };
 
 function reducer(state: AgentStreamState, action: Action): AgentStreamState {
   switch (action.type) {
@@ -97,6 +98,9 @@ function reducer(state: AgentStreamState, action: Action): AgentStreamState {
     case 'RESET':
       return initialState;
 
+    case 'RESTORE':
+      return action.state;
+
     default:
       return state;
   }
@@ -141,5 +145,10 @@ export function useAgentStream() {
     dispatch({ type: 'RESET' });
   }, []);
 
-  return { state, send, retry, reset };
+  const restore = useCallback((snapshot: AgentStreamState) => {
+    abortRef.current?.abort();
+    dispatch({ type: 'RESTORE', state: snapshot });
+  }, []);
+
+  return { state, send, retry, reset, restore };
 }

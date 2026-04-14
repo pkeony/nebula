@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useCallback } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import {
   ReactFlow,
   useNodesState,
@@ -13,6 +13,7 @@ import {
 import type { AgentEvent } from '@/types/agent-events';
 import type { ChatMessage } from '@/hooks/useAgentStream';
 import { buildGraph } from '@/lib/graph-layout';
+import { NODE_WIDTH } from './nodes/node-styles';
 import { StartNode } from './nodes/StartNode';
 import { ThinkingNode } from './nodes/ThinkingNode';
 import { ToolCallNode } from './nodes/ToolCallNode';
@@ -31,6 +32,9 @@ const nodeTypes: NodeTypes = {
   error: ErrorNode,
 };
 
+/** 최신 노드를 적당한 줌으로 추적하는 줌 레벨 */
+const FOLLOW_ZOOM = 0.85;
+
 interface AgentFlowGraphProps {
   events: AgentEvent[];
   messages: ChatMessage[];
@@ -40,7 +44,8 @@ interface AgentFlowGraphProps {
 export function AgentFlowGraph({ events, messages, isDone }: AgentFlowGraphProps) {
   const [nodes, setNodes, onNodesChange] = useNodesState<Node>([] as Node[]);
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([] as Edge[]);
-  const { fitView } = useReactFlow();
+  const { setCenter, fitView } = useReactFlow();
+  const prevNodeCount = useRef(0);
 
   const userMessage = useMemo(() => {
     const last = messages.findLast((m) => m.role === 'user');
@@ -52,6 +57,7 @@ export function AgentFlowGraph({ events, messages, isDone }: AgentFlowGraphProps
     if (!userMessage && events.length === 0) {
       setNodes([]);
       setEdges([]);
+      prevNodeCount.current = 0;
       return;
     }
 
@@ -66,24 +72,26 @@ export function AgentFlowGraph({ events, messages, isDone }: AgentFlowGraphProps
 
     setNodes(newNodes);
     setEdges(newEdges);
-  }, [events, userMessage, isDone, setNodes, setEdges]);
 
-  // 새 노드 추가 시 뷰 자동 이동
-  const handleNodesChange = useCallback(
-    (...args: Parameters<typeof onNodesChange>) => {
-      onNodesChange(...args);
+    // 새 노드 추가 시 → 최신 노드로 카메라 이동 (fitView 대신 setCenter)
+    if (newNodes.length > prevNodeCount.current && newNodes.length > 0) {
+      const lastNode = newNodes[newNodes.length - 1];
       requestAnimationFrame(() => {
-        fitView({ duration: 300, padding: 0.2 });
+        setCenter(
+          lastNode.position.x + NODE_WIDTH / 2,
+          lastNode.position.y,
+          { zoom: FOLLOW_ZOOM, duration: 300 },
+        );
       });
-    },
-    [onNodesChange, fitView],
-  );
+    }
+    prevNodeCount.current = newNodes.length;
+  }, [events, userMessage, isDone, setNodes, setEdges, setCenter]);
 
   return (
     <ReactFlow
       nodes={nodes}
       edges={edges}
-      onNodesChange={handleNodesChange}
+      onNodesChange={onNodesChange}
       onEdgesChange={onEdgesChange}
       nodeTypes={nodeTypes}
       fitView

@@ -39,5 +39,7 @@ export const NODE_CONFIG = {
   },
 } as const;
 
-export const VERTICAL_SPACING = 160;
+export const VERTICAL_SPACING = 180;
+export const HORIZONTAL_SPACING = 60;
 export const NODE_WIDTH = 320;
+export const MAX_PER_ROW = 4;

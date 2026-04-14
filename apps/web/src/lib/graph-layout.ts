@@ -1,11 +1,24 @@
 import type { Edge } from '@xyflow/react';
 import type { AgentEvent } from '@/types/agent-events';
 import type { AgentNode } from '@/types/graph';
-import { VERTICAL_SPACING } from '@/components/flow/nodes/node-styles';
+import { VERTICAL_SPACING, HORIZONTAL_SPACING, NODE_WIDTH, MAX_PER_ROW } from '@/components/flow/nodes/node-styles';
+
+/**
+ * 좌→우 wrap 레이아웃 위치 계산.
+ * 한 행에 MAX_PER_ROW 개까지 배치, 다 차면 다음 행으로.
+ */
+function calcPosition(index: number): { x: number; y: number } {
+  const col = index % MAX_PER_ROW;
+  const row = Math.floor(index / MAX_PER_ROW);
+  return {
+    x: col * (NODE_WIDTH + HORIZONTAL_SPACING),
+    y: row * VERTICAL_SPACING,
+  };
+}
 
 /**
  * AgentEvent 배열을 React Flow 노드/엣지로 변환.
- * 수직 단일 열 레이아웃.
+ * 좌→우 진행, 행이 차면 다음 줄로 wrap.
  */
 export function buildGraph(
   events: AgentEvent[],
@@ -20,7 +33,7 @@ export function buildGraph(
   nodes.push({
     id: startId,
     type: 'start',
-    position: { x: 0, y: 0 },
+    position: calcPosition(0),
     data: { message: userMessage },
   });
 
@@ -28,7 +41,7 @@ export function buildGraph(
   let nodeIndex = 1;
 
   for (const event of events) {
-    const y = nodeIndex * VERTICAL_SPACING;
+    const pos = calcPosition(nodeIndex);
 
     switch (event.type) {
       case 'thinking': {
@@ -36,7 +49,7 @@ export function buildGraph(
         nodes.push({
           id,
           type: 'thinking',
-          position: { x: 0, y },
+          position: pos,
           data: { content: event.content },
         });
         edges.push(makeEdge(prevId, id));
@@ -50,7 +63,7 @@ export function buildGraph(
         nodes.push({
           id,
           type: 'toolCall',
-          position: { x: 0, y },
+          position: pos,
           data: { toolCallId: event.id, tool: event.tool, args: event.args },
         });
         edges.push(makeEdge(prevId, id));
@@ -64,7 +77,7 @@ export function buildGraph(
         nodes.push({
           id,
           type: 'toolResult',
-          position: { x: 0, y },
+          position: pos,
           data: {
             toolCallId: event.id,
             tool: event.tool,
@@ -87,7 +100,7 @@ export function buildGraph(
           nodes.push({
             id: responseNodeId,
             type: 'response',
-            position: { x: 0, y },
+            position: pos,
             data: { text: event.text },
           });
           edges.push(makeEdge(prevId, responseNodeId));
@@ -111,7 +124,7 @@ export function buildGraph(
         nodes.push({
           id,
           type: 'done',
-          position: { x: 0, y },
+          position: pos,
           data: {
             inputTokens: event.usage.inputTokens,
             outputTokens: event.usage.outputTokens,
@@ -131,7 +144,7 @@ export function buildGraph(
         nodes.push({
           id,
           type: 'error',
-          position: { x: 0, y },
+          position: pos,
           data: { message: event.message },
         });
         edges.push(makeEdge(prevId, id));

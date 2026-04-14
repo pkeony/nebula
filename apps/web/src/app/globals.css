@@ -57,8 +57,9 @@ body {
   padding: 10px 12px;
   color: var(--color-text);
   line-height: 1.5;
-  max-height: 200px;
+  max-height: 300px;
   overflow-y: auto;
+  word-break: break-word;
 }
 
 @keyframes node-enter {
