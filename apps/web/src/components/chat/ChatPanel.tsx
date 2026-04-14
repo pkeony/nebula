@@ -28,40 +28,45 @@ function getErrorDisplay(state: AgentStreamState): { message: string; showRetry:
 
 export function ChatPanel({ state, onSend, onRetry, onReset }: ChatPanelProps) {
   const errorDisplay = getErrorDisplay(state);
+  const isStreaming = state.status === 'streaming';
 
   return (
     <div className="flex flex-col h-full">
-      {/* 헤더 */}
-      <header className="flex items-center justify-between px-6 h-20 bg-[var(--color-surface)]">
-        <h1 className="text-xl font-extrabold font-[Manrope] text-[var(--color-primary)] tracking-tight">
-          Agent Chat
-        </h1>
+      {/* 헤더 — editorial minimal */}
+      <header className="flex items-center justify-between px-8 h-16">
+        <div className="flex items-center gap-3">
+          <div className="w-2 h-2 rounded-full bg-[var(--color-primary)]" />
+          <span className="text-xs font-bold uppercase tracking-[0.12em] text-[var(--color-text-secondary)]">
+            Active Session
+          </span>
+        </div>
         <button
           onClick={onReset}
-          className="text-xs px-3 py-1.5 rounded-full text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-high)] transition-colors"
+          className="flex items-center gap-1.5 text-xs px-3.5 py-1.5 rounded-full text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-low)] transition-colors"
         >
-          New Chat
+          <span className="material-symbols-outlined text-sm">add</span>
+          New
         </button>
       </header>
 
       {/* 메시지 목록 */}
       <MessageList messages={state.messages} />
 
-      {/* 상태 표시 */}
-      {state.status === 'streaming' && (
-        <div className="px-6 py-2 flex items-center gap-2">
-          <span className="flex h-2 w-2 rounded-full bg-[var(--color-primary)] animate-pulse" />
-          <span className="text-xs text-[var(--color-text-secondary)] font-medium">
-            에이전트 실행 중...
+      {/* 스트리밍 상태 — 하단 subtle indicator */}
+      {isStreaming && (
+        <div className="px-8 py-3 flex items-center gap-2.5">
+          <span className="flex h-1.5 w-1.5 rounded-full bg-[var(--color-primary)] animate-pulse" />
+          <span className="text-[11px] text-[var(--color-text-secondary)] tracking-wide">
+            Composing response…
           </span>
         </div>
       )}
 
       {/* 에러 표시 */}
       {errorDisplay && (
-        <div className="mx-6 mb-2 px-4 py-3 rounded-xl bg-[var(--color-error-container)]/10 flex items-center gap-3">
-          <span className="material-symbols-outlined text-[var(--color-error)] text-lg">warning</span>
-          <span className="text-sm text-[var(--color-error)] flex-1">
+        <div className="mx-6 mb-2 px-5 py-3.5 rounded-2xl bg-[var(--color-error-container)]/8 flex items-center gap-3">
+          <span className="material-symbols-outlined text-[var(--color-error)] text-base">info</span>
+          <span className="text-sm text-[var(--color-error)] flex-1 leading-relaxed">
             {errorDisplay.message}
           </span>
           {errorDisplay.showRetry && (
@@ -76,7 +81,7 @@ export function ChatPanel({ state, onSend, onRetry, onReset }: ChatPanelProps) {
       )}
 
       {/* 입력 */}
-      <ChatInput onSend={onSend} disabled={state.status === 'streaming'} />
+      <ChatInput onSend={onSend} disabled={isStreaming} />
     </div>
   );
 }

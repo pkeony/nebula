@@ -126,7 +126,31 @@ h1, h2, h3 {
   opacity: 1;
 }
 
+/* React Flow 노드 — 기본 border 제거 */
+.react-flow__node {
+  border: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
+}
+
 /* React Flow 배경 */
 .react-flow__background {
   background: var(--color-surface-low) !important;
+}
+
+/* ── Process Narrative panel ────────────────────── */
+
+.process-narrative-enter {
+  animation: narrative-slide-in 0.4s ease-out;
+}
+
+@keyframes narrative-slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(-12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
