@@ -1,0 +1,29 @@
+{
+  "servers": [
+    {
+      "name": "nebula",
+      "command": "node",
+      "args": ["packages/mcp-server/dist/cli.js"],
+      "enabled": true
+    },
+    {
+      "name": "filesystem",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        "/home/pkeony/Kelvin/nebula"
+      ],
+      "enabled": true
+    },
+    {
+      "name": "github",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "env": {
+        "GITHUB_TOKEN": "process.env.GITHUB_TOKEN"
+      },
+      "enabled": true
+    }
+  ]
+}

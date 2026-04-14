@@ -1,23 +1,17 @@
 import { randomUUID } from 'node:crypto';
 import type { FastifyPluginAsync } from 'fastify';
 import type { AiMessage } from '@nebula/ai';
-import { McpRegistry, type ServerConfig } from '@nebula/mcp-client';
+import { McpRegistry, loadServerConfigs } from '@nebula/mcp-client';
 import { execute } from '@nebula/agent';
 import type { ErrorCode } from '@nebula/agent';
 import { RunRequestSchema } from '../schemas.js';
 
 /**
- * MCP 서버 설정 — 서버 사이드에서만 관리.
- * 클라이언트가 임의의 command 를 spawn 하는 RCE 방지.
+ * MCP 서버 설정 — mcp-servers.json 에서 로드.
+ * 서버 사이드에서만 관리. 클라이언트가 임의의 command 를 spawn 하는 RCE 방지.
  */
-const MCP_SERVERS: ServerConfig[] = [
-  {
-    name: 'nebula',
-    command: 'node',
-    args: ['packages/mcp-server/dist/cli.js'],
-    cwd: new URL('../../../../', import.meta.url).pathname,
-  },
-];
+const CONFIG_PATH = new URL('../../mcp-servers.json', import.meta.url).pathname;
+const PROJECT_ROOT = new URL('../../../../', import.meta.url).pathname;
 
 /* ── In-memory Conversation Store ──────────────────────── */
 
@@ -103,9 +97,18 @@ export const agentRoutes: FastifyPluginAsync = async (app) => {
     const registry = new McpRegistry();
 
     try {
-      // MCP 서버 등록 (서버 사이드 설정만 사용)
-      for (const server of MCP_SERVERS) {
-        await registry.register(server);
+      // MCP 서버 등록 (설정 파일 기반, 개별 실패 허용)
+      const serverConfigs = await loadServerConfigs(CONFIG_PATH);
+      for (const server of serverConfigs) {
+        try {
+          await registry.register({
+            ...server,
+            cwd: server.cwd ?? PROJECT_ROOT,
+          });
+          app.log.info(`MCP 서버 연결 성공: ${server.name}`);
+        } catch (err) {
+          app.log.warn(`MCP 서버 연결 실패 (건너뜀): ${server.name} — ${err instanceof Error ? err.message : String(err)}`);
+        }
       }
 
       // Agent 실행 — 이벤트 스트리밍 (messages 배열 전달)

@@ -6,6 +6,13 @@ import { mcpToolsToFunctionDeclarations, buildToolNameMap } from './convert-tool
 
 const DEFAULT_MODEL: ModelId = 'gemini-2.5-flash';
 const DEFAULT_MAX_ITERATIONS = 10;
+const MAX_LLM_RETRIES = 1;
+const RETRY_DELAY_MS = 2000;
+
+/** tool_result 가 이 글자 수를 넘으면 오래된 것부터 트리밍 */
+const TRIM_THRESHOLD_CHARS = 50_000;
+/** 트리밍 시 결과를 이 길이로 축약 */
+const TRIMMED_RESULT_CHARS = 200;
 
 /**
  * Gemini SDK 에러에서 HTTP status 추출 → ErrorCode 매핑.
@@ -59,8 +66,12 @@ export async function* execute(
   // 사용량 누적
   const totalUsage: AiUsage = { inputTokens: 0, outputTokens: 0, costUsd: 0 };
   let callId = 0;
+  let llmRetries = 0;
 
   for (let iteration = 0; iteration < maxIterations; iteration++) {
+    // 컨텍스트 윈도우 관리 — 오래된 tool_result 트리밍
+    trimToolResults(messages);
+
     // AbortSignal 체크
     if (options?.signal?.aborted) {
       yield { type: 'error', message: 'Agent 실행이 취소되었습니다', code: 'aborted', retryable: false };
@@ -72,18 +83,19 @@ export async function* execute(
     let functionCalls: AiFunctionCall[] | undefined;
     let iterationUsage: AiUsage | undefined;
 
+    const streamLlm = () => streamChat(messages, {
+      model,
+      system,
+      maxTokens: options?.maxTokens ?? 4096,
+      temperature: options?.temperature ?? 0.2,
+      signal: options?.signal,
+      tools: functionDeclarations.length > 0 ? functionDeclarations : undefined,
+      toolConfig: functionDeclarations.length > 0 ? { mode: 'auto' } : undefined,
+    });
+
     try {
-      for await (const event of streamChat(messages, {
-        model,
-        system,
-        maxTokens: options?.maxTokens ?? 4096,
-        temperature: options?.temperature ?? 0.2,
-        signal: options?.signal,
-        tools: functionDeclarations.length > 0 ? functionDeclarations : undefined,
-        toolConfig: functionDeclarations.length > 0 ? { mode: 'auto' } : undefined,
-      })) {
+      for await (const event of streamLlm()) {
         if (event.type === 'delta') {
-          // 텍스트 delta — 실시간 스트리밍 (thinking 또는 최종 응답)
           fullText += event.text;
         } else if (event.type === 'function_calls') {
           functionCalls = event.calls;
@@ -93,6 +105,16 @@ export async function* execute(
       }
     } catch (err) {
       const { code, retryable } = classifyError(err);
+
+      // 재시도 가능한 에러 (rate_limit, server_error) → 1회 백오프 재시도
+      if (retryable && llmRetries < MAX_LLM_RETRIES) {
+        llmRetries++;
+        yield { type: 'thinking', content: `LLM 호출 실패 (${code}), ${RETRY_DELAY_MS}ms 후 재시도...` };
+        await new Promise((r) => setTimeout(r, RETRY_DELAY_MS));
+        iteration--; // 이번 iteration 재시도
+        continue;
+      }
+
       yield { type: 'error', message: err instanceof Error ? err.message : String(err), code, retryable };
       return;
     }
@@ -152,7 +174,7 @@ export async function* execute(
           .join('\n');
       } catch (err) {
         isError = true;
-        resultText = err instanceof Error ? err.message : String(err);
+        resultText = `[TOOL_ERROR] ${fc.name} 실행 실패: ${err instanceof Error ? err.message : String(err)}. 다른 도구나 접근 방식을 시도하세요.`;
       }
 
       yield { type: 'tool_result', id, tool: fc.name, result: resultText, isError };
@@ -174,6 +196,46 @@ export async function* execute(
 
   // maxIterations 초과
   yield { type: 'error', message: `최대 반복 횟수(${maxIterations})를 초과했습니다`, code: 'timeout', retryable: false };
+}
+
+/**
+ * 대화 이력의 총 문자 수가 임계값을 초과하면
+ * 오래된 functionResponse 결과를 축약해 토큰을 절약한다.
+ * 가장 최근 2개 메시지는 보존.
+ */
+function trimToolResults(messages: AiMessage[]): void {
+  const totalChars = messages.reduce((sum, m) => {
+    if (m.parts) {
+      return sum + m.parts.reduce((ps, p) => {
+        if (p.type === 'functionResponse') {
+          return ps + JSON.stringify(p.functionResponse.response).length;
+        }
+        return ps;
+      }, 0);
+    }
+    return sum + m.content.length;
+  }, 0);
+
+  if (totalChars < TRIM_THRESHOLD_CHARS) return;
+
+  // 오래된 메시지부터 functionResponse 결과 축약 (최근 4개 메시지 보존)
+  const preserveCount = 4;
+  for (let i = 0; i < messages.length - preserveCount; i++) {
+    const msg = messages[i];
+    if (!msg.parts) continue;
+
+    for (const part of msg.parts) {
+      if (part.type === 'functionResponse') {
+        const resultStr = JSON.stringify(part.functionResponse.response);
+        if (resultStr.length > TRIMMED_RESULT_CHARS) {
+          part.functionResponse.response = {
+            result: resultStr.slice(0, TRIMMED_RESULT_CHARS) + '... [trimmed]',
+            isError: false,
+          };
+        }
+      }
+    }
+  }
 }
 
 function buildDefaultSystem(): string {
