@@ -81,9 +81,10 @@ export function buildGraph(
             isError: event.isError,
           },
         });
-        // tool_call → tool_result (좌→우 가로 연결만)
+        // tool_call → tool_result (가로)
         edges.push(makeEdge(callId, resultId));
-        // prevMainId는 tool_call로 유지 — 세로 흐름이 왼쪽 열에서만 내려감
+        // tool_result → 다음 스텝 (smoothstep이 └┐ 형태로 꺾어줌)
+        prevMainId = resultId;
         break;
       }
 
@@ -154,7 +155,7 @@ function makeEdge(source: string, target: string): Edge {
     id: `e-${source}-${target}`,
     source,
     target,
-    type: 'default',
+    type: 'smoothstep',
     animated: false,
     style: { stroke: '#2d3335', strokeWidth: 2 },
     markerEnd: {
