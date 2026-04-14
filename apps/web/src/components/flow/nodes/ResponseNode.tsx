@@ -10,7 +10,7 @@ export function ResponseNode({ data }: NodeProps & { data: ResponseNodeData }) {
         <div className="flow-node-icon bg-[var(--color-tertiary-container)] text-[var(--color-tertiary)]">
           <span className="material-symbols-outlined">chat_bubble</span>
         </div>
-        <span className="flow-node-title">Response</span>
+        <span className="flow-node-title">응답</span>
       </div>
       <div className="flow-node-body whitespace-pre-wrap">{data.text}</div>
       <Handle type="source" position={Position.Bottom} />

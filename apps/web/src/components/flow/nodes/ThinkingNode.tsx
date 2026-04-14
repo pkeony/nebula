@@ -20,7 +20,7 @@ export function ThinkingNode({ data }: NodeProps & { data: ThinkingNodeData }) {
         <div className="flow-node-icon bg-[var(--color-primary-container)] text-[var(--color-primary)]">
           <span className="material-symbols-outlined">psychology</span>
         </div>
-        <span className="flow-node-title">Thinking</span>
+        <span className="flow-node-title">판단</span>
       </div>
       <div className="flow-node-body opacity-70 italic">
         {display}

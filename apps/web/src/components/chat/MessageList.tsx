@@ -26,10 +26,10 @@ export function MessageList({ messages }: MessageListProps) {
           </div>
           <div className="text-center space-y-2">
             <h3 className="text-lg font-[Manrope] font-bold text-[var(--color-text)] tracking-tight">
-              What can I help you with?
+              무엇을 도와드릴까요?
             </h3>
             <p className="text-[13px] text-[var(--color-text-secondary)] leading-relaxed">
-              Ask a question to begin a new reflection.
+              질문을 입력하면 에이전트가 도구를 활용해 답변합니다.
             </p>
           </div>
         </div>

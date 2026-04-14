@@ -27,7 +27,7 @@ export function ToolResultNode({ data }: NodeProps & { data: ToolResultNodeData 
             {data.isError ? 'error' : 'check_circle'}
           </span>
         </div>
-        <span className="flow-node-title">Result</span>
+        <span className="flow-node-title">결과</span>
         <span className="flow-node-meta">{toolName}</span>
       </div>
       <div className="flow-node-body">

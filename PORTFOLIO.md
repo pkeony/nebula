@@ -94,7 +94,33 @@ nebula/
    - 세션 경계를 명확히 해서 컨텍스트 오염 방지
    - 각 세션은 독립적으로 완결되는 단위
 
+### Hooks — 자동 품질 체크 + 안전망
+
+`.claude/hooks.json`으로 Claude Code 이벤트에 셸 커맨드를 바인딩:
+
+| 이벤트 | matcher | 동작 | 목적 |
+|--------|---------|------|------|
+| `PreToolUse` | `Bash` | `rm -rf`, `--force`, `--hard` 등 감지 시 차단 | 파괴적 명령 안전망 |
+| `PostToolUse` | `Edit\|Write` | `pnpm tsc --noEmit` 자동 실행 (30s timeout) | 파일 수정 즉시 타입 체크 |
+
+**설계 포인트:**
+- git pre-commit hook(husky)과 Claude Code hooks는 **레이어가 다름** — 전자는 커밋 시점, 후자는 도구 사용 시점
+- PreToolUse로 파괴적 명령을 **실행 전에** 차단 — settings.json deny와 이중 방어
+
+### Settings — 프로젝트별 권한 경계
+
+`.claude/settings.json`으로 도구 권한을 프로젝트 단위로 선언:
+
+| 구분 | 규칙 | 효과 |
+|------|------|------|
+| allow | `Read`, `Glob`, `Grep`, `Bash(pnpm *)`, `Bash(git status/log/diff*)` | 안전한 도구 자동 허용 → 매 세션 클릭 제거 |
+| deny | `Bash(rm -rf *)`, `Bash(git push --force*)`, `Bash(git reset --hard*)` | 위험 명령 원천 차단 |
+
+**면접 어필:** "프로젝트별 보안 경계를 선언적으로 설정하면서 DX를 최적화"
+
 ### Skill / Slash Command 활용
+
+**빌트인 Skill:**
 
 | Skill | 용도 | 사용 시점 |
 |-------|------|-----------|
@@ -102,6 +128,14 @@ nebula/
 | `/review-pr` | PR 리뷰 | 코드 병합 전 |
 | `explain-code` | 코드 설명 + 다이어그램 | 복잡한 로직 이해 |
 | `simplify` | 코드 품질 개선 | 큰 변경 후 |
+
+**커스텀 Slash Command (`.claude/commands/`):**
+
+| 커맨드 | 파일 | 동작 |
+|--------|------|------|
+| `/build` | `build.md` | `pnpm --filter $ARGUMENTS build` — 패키지별 또는 전체 빌드 |
+| `/test` | `test.md` | `pnpm --filter $ARGUMENTS test` — 실패 시 원인 분석 + 수정 |
+| `/check` | `check.md` | tsc → lint → test 순차 실행 — 한방 품질 체크 |
 
 ### Agent 활용 패턴
 

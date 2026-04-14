@@ -26,3 +26,7 @@
 - **테스트** — Vitest 단위/통합 테스트
 
 //nebula 프로젝트의 packages 폴더 구조를 확인하고, 각 패키지의 package.json에서 이름과 버전을 정리해줘
+/_
+"nebula 프로젝트의 packages 폴더 구조를 확인하고, 각 패키지의 package.json에서 이름과 버전을 정리해줘"
+(list_directory → read_file × 4~5)
+_/

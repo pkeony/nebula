@@ -27,7 +27,7 @@ function buildSteps(events: AgentEvent[]): TimelineStep[] {
     if (event.type === 'thinking') {
       steps.push({
         type: 'thinking',
-        label: 'Analyzing Intent',
+        label: '의도 분석',
         detail: event.content.slice(0, 90) + (event.content.length > 90 ? '…' : ''),
         icon: 'psychology',
         status: 'done',
@@ -74,7 +74,7 @@ function buildSteps(events: AgentEvent[]): TimelineStep[] {
                 .slice(0, 2)
                 .map(([k, v]) => `${k}: ${String(v).slice(0, 40)}`)
                 .join(', ')
-            : 'Processing…',
+            : '처리 중…',
           icon: getToolIcon(toolName),
           status: hasError ? 'error' : hasResult ? 'done' : 'active',
           count: 1,
@@ -115,7 +115,7 @@ function StatusBadge({ step }: { step: TimelineStep }) {
       <div className="flex items-center gap-1.5">
         <span className="w-2 h-2 rounded-full bg-[var(--color-primary)]" />
         <span className="text-[10px] font-bold text-[var(--color-primary)] uppercase tracking-wider">
-          {count > 1 ? `${count}/${count} Completed` : 'Completed'}
+          {count > 1 ? `${count}/${count} 완료` : '완료'}
         </span>
       </div>
     );
@@ -129,7 +129,7 @@ function StatusBadge({ step }: { step: TimelineStep }) {
           <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-primary)] animate-pulse [animation-delay:150ms]" />
         </div>
         <span className="text-[10px] font-bold text-[var(--color-primary)] uppercase tracking-wider">
-          {count > 1 ? `${doneCount}/${count} Processing` : 'Processing'}
+          {count > 1 ? `${doneCount}/${count} 처리 중` : '처리 중'}
         </span>
       </div>
     );
@@ -139,7 +139,7 @@ function StatusBadge({ step }: { step: TimelineStep }) {
       <div className="flex items-center gap-1.5">
         <span className="w-2 h-2 rounded-full bg-[var(--color-error)]" />
         <span className="text-[10px] font-bold text-[var(--color-error)] uppercase tracking-wider">
-          {step.errorCount} Error{step.errorCount > 1 ? 's' : ''}
+          {step.errorCount}건 오류
         </span>
       </div>
     );
@@ -167,16 +167,16 @@ export function ProcessTimeline({ events, isStreaming, onShowFlow }: ProcessTime
       {/* 헤더 — 고정 */}
       <div className="flex justify-between items-end px-8 pt-8 pb-4 flex-shrink-0">
         <h2 className="font-[Manrope] text-2xl font-extrabold tracking-tight text-[var(--color-text)]">
-          Process Flow
+          실행 흐름
         </h2>
         {isStreaming && toolCount > 0 && (
           <span className="text-[10px] uppercase tracking-widest font-bold text-[var(--color-primary)] px-2.5 py-1 bg-[var(--color-primary-container)] rounded-full">
-            {doneCount}/{toolCount} done
+            {doneCount}/{toolCount} 완료
           </span>
         )}
         {!isStreaming && hasContent && (
           <span className="text-[10px] uppercase tracking-widest font-bold text-[var(--color-primary)] px-2.5 py-1 bg-[var(--color-primary-container)] rounded-full">
-            {steps.length} steps
+            {steps.length}단계
           </span>
         )}
       </div>
@@ -275,10 +275,10 @@ export function ProcessTimeline({ events, isStreaming, onShowFlow }: ProcessTime
               </div>
               <div className="flex-1 bg-[var(--color-primary-container)] p-5 rounded-2xl shadow-md">
                 <h4 className="font-[Manrope] font-bold text-sm text-[var(--color-on-primary-container)]">
-                  Initializing
+                  초기화 중
                 </h4>
                 <p className="text-xs text-[var(--color-on-primary-container)]/80 mt-1">
-                  Preparing agent context…
+                  에이전트 컨텍스트 준비 중…
                 </p>
                 <div className="mt-3">
                   <StatusBadge step={{ type: 'thinking', label: '', detail: '', icon: '', status: 'active', count: 1, doneCount: 0, errorCount: 0 }} />
@@ -297,10 +297,10 @@ export function ProcessTimeline({ events, isStreaming, onShowFlow }: ProcessTime
                 style={{ background: 'var(--color-tertiary-container)' }}
               />
               <h5 className="font-[Manrope] font-bold text-sm text-[var(--color-text)] mb-2">
-                Execution Summary
+                실행 요약
               </h5>
               <p className="text-xs text-[var(--color-text-secondary)] leading-relaxed">
-                {toolCount} tool call{toolCount !== 1 ? 's' : ''} across {steps.filter((s) => s.type === 'tool_group').length} step{steps.filter((s) => s.type === 'tool_group').length !== 1 ? 's' : ''}, {doneCount} completed.
+                도구 {toolCount}회 호출, {steps.filter((s) => s.type === 'tool_group').length}단계 진행, {doneCount}건 완료
               </p>
               {onShowFlow && (
                 <button
@@ -308,7 +308,7 @@ export function ProcessTimeline({ events, isStreaming, onShowFlow }: ProcessTime
                   className="mt-4 flex items-center gap-2 text-[11px] font-bold text-[var(--color-primary)] hover:text-[var(--color-on-primary-container)] transition-colors"
                 >
                   <span className="material-symbols-outlined text-sm">account_tree</span>
-                  View Flow Detail
+                  실행 흐름 보기
                 </button>
               )}
             </div>

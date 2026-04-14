@@ -30,7 +30,7 @@ export function Sidebar({ sessions, activeSessionId, onNewChat, onSwitch, onDele
           Nebula AI
         </span>
         <p className="text-[11px] text-[var(--color-text-secondary)] mt-0.5">
-          Digital Sanctuary
+          AI 에이전트 플랫폼
         </p>
       </div>
 
@@ -40,7 +40,7 @@ export function Sidebar({ sessions, activeSessionId, onNewChat, onSwitch, onDele
         className="flex items-center justify-center gap-2 bg-[var(--color-primary)] hover:bg-[var(--color-primary-dim,#3a5952)] text-[var(--color-on-primary)] rounded-xl py-3 px-4 font-medium text-sm transition-all mb-6"
       >
         <span className="material-symbols-outlined text-lg">add</span>
-        New Thread
+        새 대화
       </button>
 
       {/* 세션 목록 */}
@@ -91,17 +91,8 @@ export function Sidebar({ sessions, activeSessionId, onNewChat, onSwitch, onDele
         })}
       </nav>
 
-      {/* 하단 */}
-      <div className="mt-auto pt-4 space-y-1">
-        <div className="flex items-center gap-3 text-[var(--color-text-secondary)] px-3 py-2.5 hover:bg-[var(--color-surface-lowest)]/60 rounded-xl transition-colors cursor-pointer text-sm">
-          <span className="material-symbols-outlined text-lg">menu_book</span>
-          Documentation
-        </div>
-        <div className="flex items-center gap-3 text-[var(--color-text-secondary)] px-3 py-2.5 hover:bg-[var(--color-surface-lowest)]/60 rounded-xl transition-colors cursor-pointer text-sm">
-          <span className="material-symbols-outlined text-lg">settings</span>
-          Settings
-        </div>
-      </div>
+      {/* 하단 여백 */}
+      <div className="mt-auto pt-4" />
     </aside>
   );
 }

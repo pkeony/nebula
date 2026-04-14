@@ -12,23 +12,23 @@ export function DoneNode({ data }: NodeProps & { data: DoneNodeData }) {
             check_circle
           </span>
         </div>
-        <span className="flow-node-title">Done</span>
+        <span className="flow-node-title">완료</span>
       </div>
       <div className="flow-node-body text-[11px] space-y-1.5">
         <div className="flex justify-between">
-          <span className="opacity-50">Model</span>
+          <span className="opacity-50">모델</span>
           <span className="font-medium">{data.model}</span>
         </div>
         <div className="flex justify-between">
-          <span className="opacity-50">Iterations</span>
+          <span className="opacity-50">반복</span>
           <span className="font-medium">{data.iterations}</span>
         </div>
         <div className="flex justify-between">
-          <span className="opacity-50">Tokens</span>
-          <span className="font-medium">{data.inputTokens.toLocaleString()} in / {data.outputTokens.toLocaleString()} out</span>
+          <span className="opacity-50">토큰</span>
+          <span className="font-medium">{data.inputTokens.toLocaleString()} 입력 / {data.outputTokens.toLocaleString()} 출력</span>
         </div>
         <div className="flex justify-between">
-          <span className="opacity-50">Cost</span>
+          <span className="opacity-50">비용</span>
           <span className="font-medium">${data.costUsd.toFixed(4)}</span>
         </div>
       </div>

@@ -37,7 +37,7 @@ export function ChatPanel({ state, onSend, onRetry, onReset }: ChatPanelProps) {
         <div className="flex items-center gap-3">
           <div className="w-2 h-2 rounded-full bg-[var(--color-primary)]" />
           <span className="text-xs font-bold uppercase tracking-[0.12em] text-[var(--color-text-secondary)]">
-            Active Session
+            현재 세션
           </span>
         </div>
         <button
@@ -45,7 +45,7 @@ export function ChatPanel({ state, onSend, onRetry, onReset }: ChatPanelProps) {
           className="flex items-center gap-1.5 text-xs px-3.5 py-1.5 rounded-full text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-low)] transition-colors"
         >
           <span className="material-symbols-outlined text-sm">add</span>
-          New
+          새 대화
         </button>
       </div>
 
@@ -57,7 +57,7 @@ export function ChatPanel({ state, onSend, onRetry, onReset }: ChatPanelProps) {
         <div className="px-8 py-3 flex items-center gap-2.5">
           <span className="flex h-1.5 w-1.5 rounded-full bg-[var(--color-primary)] animate-pulse" />
           <span className="text-[11px] text-[var(--color-text-secondary)] tracking-wide">
-            Composing response…
+            응답 작성 중…
           </span>
         </div>
       )}

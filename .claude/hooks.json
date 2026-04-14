@@ -1,0 +1,28 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo \"$TOOL_INPUT\" | grep -qE 'rm -rf|--force|--hard|branch -D' && echo 'BLOCKED: 파괴적 명령 감지' && exit 1 || exit 0",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "pnpm tsc --noEmit 2>&1 | head -20",
+            "timeout": 30
+          }
+        ]
+      }
+    ]
+  }
+}

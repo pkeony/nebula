@@ -22,7 +22,7 @@ export function ToolCallNode({ data }: NodeProps & { data: ToolCallNodeData }) {
         <div className="flow-node-icon bg-[var(--color-secondary-container)] text-[var(--color-secondary)]">
           <span className="material-symbols-outlined">build</span>
         </div>
-        <span className="flow-node-title">Tool Call</span>
+        <span className="flow-node-title">도구 호출</span>
         <span className="flow-node-meta">{toolName}</span>
       </div>
       <div className="flow-node-body">

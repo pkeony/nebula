@@ -9,7 +9,7 @@ export function StartNode({ data }: NodeProps & { data: StartNodeData }) {
         <div className="flow-node-icon bg-[var(--color-surface-high)] text-[var(--color-text-secondary)]">
           <span className="material-symbols-outlined">person</span>
         </div>
-        <span className="flow-node-title">User</span>
+        <span className="flow-node-title">사용자</span>
       </div>
       <div className="flow-node-body">{data.message}</div>
       <Handle type="source" position={Position.Bottom} />

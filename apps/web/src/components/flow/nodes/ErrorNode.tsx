@@ -10,7 +10,7 @@ export function ErrorNode({ data }: NodeProps & { data: ErrorNodeData }) {
         <div className="flow-node-icon bg-[rgba(250,116,111,0.15)] text-[var(--color-error)]">
           <span className="material-symbols-outlined">error</span>
         </div>
-        <span className="flow-node-title">Error</span>
+        <span className="flow-node-title">오류</span>
       </div>
       <div className="flow-node-body text-[var(--color-error)]">{data.message}</div>
     </div>
