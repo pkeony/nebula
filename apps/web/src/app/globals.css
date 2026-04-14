@@ -158,14 +158,8 @@ h1, h2, h3 {
 
 /* React Flow 엣지 색상 */
 .react-flow__edge-path {
-  stroke: var(--color-primary) !important;
-  opacity: 0.25;
-  stroke-width: 1.5px;
-}
-
-.react-flow__edge.animated .react-flow__edge-path {
-  stroke: var(--color-primary) !important;
-  opacity: 0.5;
+  stroke: #2d3335 !important;
+  stroke-width: 2px !important;
 }
 
 /* React Flow 노드 — 기본 border 제거 */

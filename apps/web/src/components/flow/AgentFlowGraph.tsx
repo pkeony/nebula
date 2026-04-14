@@ -64,12 +64,7 @@ export function AgentFlowGraph({ events, messages, isDone }: AgentFlowGraphProps
 
     const { nodes: newNodes, edges: newEdges } = buildGraph(events, userMessage);
 
-    // done 이후 엣지 애니메이션 정지
-    if (isDone) {
-      for (const edge of newEdges) {
-        edge.animated = false;
-      }
-    }
+
 
     setNodes(newNodes);
     setEdges(newEdges);

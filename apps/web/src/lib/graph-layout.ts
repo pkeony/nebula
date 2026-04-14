@@ -1,4 +1,4 @@
-import type { Edge } from '@xyflow/react';
+import { MarkerType, type Edge } from '@xyflow/react';
 import type { AgentEvent } from '@/types/agent-events';
 import type { AgentNode } from '@/types/graph';
 import { ROW_SPACING, PAIR_GAP, NODE_WIDTH } from '@/components/flow/nodes/node-styles';
@@ -155,7 +155,13 @@ function makeEdge(source: string, target: string): Edge {
     source,
     target,
     type: 'default',
-    animated: true,
-    style: { stroke: 'var(--color-primary)', strokeWidth: 1.5, opacity: 0.3 },
+    animated: false,
+    style: { stroke: '#2d3335', strokeWidth: 2 },
+    markerEnd: {
+      type: MarkerType.ArrowClosed,
+      width: 16,
+      height: 16,
+      color: '#2d3335',
+    },
   };
 }
