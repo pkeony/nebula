@@ -81,10 +81,9 @@ export function buildGraph(
             isError: event.isError,
           },
         });
-        // tool_call → tool_result (가로)
+        // tool_call → tool_result (가로 →)
         edges.push(makeEdge(callId, resultId));
-        // tool_result → 다음 스텝 (smoothstep이 └┐ 형태로 꺾어줌)
-        prevMainId = resultId;
+        // 세로 흐름은 왼쪽 열(tool_call)에서만 내려감
         break;
       }
 
