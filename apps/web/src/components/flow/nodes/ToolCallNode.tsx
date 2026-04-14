@@ -36,7 +36,8 @@ export function ToolCallNode({ data }: NodeProps & { data: ToolCallNodeData }) {
           </button>
         )}
       </div>
-      <Handle type="source" position={Position.Bottom} />
+      <Handle type="source" position={Position.Bottom} id="bottom" />
+      <Handle type="source" position={Position.Right} id="right" />
     </div>
   );
 }

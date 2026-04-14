@@ -20,7 +20,7 @@ export function ToolResultNode({ data }: NodeProps & { data: ToolResultNodeData 
   return (
     <div className="flow-node">
       <div className="flow-node-accent" style={{ background: accentColor }} />
-      <Handle type="target" position={Position.Top} />
+      <Handle type="target" position={Position.Left} id="left" />
       <div className="flow-node-header">
         <div className={`flow-node-icon ${iconBg} ${iconColor}`}>
           <span className="material-symbols-outlined">
@@ -41,7 +41,6 @@ export function ToolResultNode({ data }: NodeProps & { data: ToolResultNodeData 
           </button>
         )}
       </div>
-      <Handle type="source" position={Position.Bottom} />
     </div>
   );
 }
