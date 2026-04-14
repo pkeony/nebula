@@ -299,82 +299,152 @@ nebula/
 - HTTP 에러(SSE 연결 전)와 스트리밍 중 에러 통합 처리
 - 에러 코드별 한국어 메시지 (사용자 친화적 UX)
 
----
+### Phase 6: 외부 MCP 서버 연동 + Agent 고도화
 
-## 클라우드 배포 파이프라인 (계획)
+**커밋:** `162dc34` Phase 6: 외부 MCP 서버 연동 + Agent 고도화
 
-### 인프라 구성
+**설정 기반 외부 MCP 서버 로드:**
+- `mcp-servers.json` 설정 파일에서 서버 목록 동적 로드 (name, command, args, env, enabled)
+- 개별 서버 연결 실패 시 다른 서버에 영향 없음 (격리)
+- Anthropic 공식 MCP 서버 연동 가능 (filesystem, github 등)
 
-```
-GitHub Actions (CI/CD)
-  │
-  ├── PR 시: typecheck + test + build
-  ├── main 머지 시: Docker 빌드 + 배포
-  │
-  ▼
-Docker Compose (개발/스테이징)
-  ├── api (Fastify)
-  ├── web (Next.js)
-  └── mcp-server (stdio — api 컨테이너 내부)
+**멀티 서버 도구 이름 충돌 해결:**
+- Gemini는 dot(`.`)을 함수명에 허용하지 않음 → `"nebula.read_file"` → `"nebula__read_file"` 변환
+- 역매핑으로 함수 호출 후 원래 qualified name으로 McpRegistry 라우팅
 
-프로덕션 (AWS / GCP)
-  ├── API: Cloud Run / ECS Fargate
-  ├── Web: Vercel / Cloud Run
-  └── MCP Server: API 컨테이너 사이드카
-```
+**스키마 새니타이제이션:**
+- 외부 MCP 서버 JSON Schema에 Gemini 미지원 필드 포함 (`additionalProperties`, `$schema`, `anyOf` 등)
+- 화이트리스트 기반 재귀 필터링으로 호환 스키마 생성
 
-### CI/CD 파이프라인
+**LLM 에러 자동 복구:**
+- 에러 분류: 429→rate_limit, 503→server_error, abort→aborted
+- 백오프 2초 대기 후 1회 재시도 (MAX_LLM_RETRIES=1)
 
-```yaml
-# .github/workflows/ci.yml (계획)
-name: CI
-on: [push, pull_request]
+**컨텍스트 윈도우 관리:**
+- 50,000자 초과 시 오래된 도구 결과부터 축약 (최근 4개 보존)
+- 장기 대화에서 토큰 비용 최적화
 
-jobs:
-  quality:
-    - pnpm install --frozen-lockfile
-    - pnpm typecheck          # TypeScript strict
-    - pnpm test               # Vitest
-    - pnpm build              # 전체 빌드 확인
+### Phase 7: UI/UX 강화
 
-  deploy-staging:
-    needs: quality
-    if: github.ref == 'refs/heads/main'
-    steps:
-      - Docker 빌드 (multi-stage)
-      - 이미지 푸시 (ghcr.io 또는 ECR)
-      - 스테이징 환경 배포
+**커밋:** `9b5f75a` Phase 7: UI/UX 강화 — 사이드바, 도구 상세 뷰, 레이아웃 개선
 
-  deploy-production:
-    needs: deploy-staging
-    if: github.event_name == 'release'
-    steps:
-      - 프로덕션 배포
-      - 헬스체크 확인
-```
+**대화 히스토리 사이드바:**
+- `useSessions` 훅으로 세션 관리 (생성/전환/삭제)
+- 세션 전환 시 `AgentStreamState` 스냅샷 저장/복원
+- 첫 메시지 40자로 자동 제목 생성
 
-### Dockerfile (계획)
+**ToolCallNode 상세 뷰:**
+- 도구 호출 노드 클릭 시 expandable detail view
+- 도구명, 인자(`args`) 전체 내용 스크롤 가능
 
-```dockerfile
-# Multi-stage build
-FROM node:22-alpine AS base
-RUN corepack enable pnpm
+**레이아웃 개선:**
+- 좌→우 wrap 레이아웃 (MAX_PER_ROW=4)
+- React Flow `setCenter()`로 최신 노드 자동 추적
 
-FROM base AS deps
-COPY pnpm-lock.yaml pnpm-workspace.yaml ./
-COPY packages/*/package.json ./packages/
-RUN pnpm install --frozen-lockfile --prod
+### Phase 8: Lumina 디자인 시스템
 
-FROM base AS build
-COPY . .
-RUN pnpm install --frozen-lockfile
-RUN pnpm build
+**커밋:** `06e06ec` Lumina 디자인 시스템 오버홀 — 라이트 테마 + 에디토리얼 UI
 
-FROM base AS runner
-COPY --from=deps /app/node_modules ./node_modules
-COPY --from=build /app/dist ./dist
-CMD ["node", "apps/api/dist/index.js"]
-```
+- 다크→라이트 테마 전환 (CSS 변수 시스템)
+- 듀얼 폰트: Manrope(헤드라인) + Inter(본문)
+- No-Line Rule: 보더 제거, 배경색 대비 + ambient shadow로 대체
+- Glassmorphic 입력창 (`backdrop-filter: blur()`)
+- Material Symbols 아이콘 통합
+
+### Phase 9: Process Flow 패널 + 에디토리얼 리디자인
+
+**커밋:** `b0165f6` Process Flow 패널 + 채팅 UI 에디토리얼 리디자인
+
+**ProcessTimeline 우측 패널:**
+- 독립 우측 패널 (`w-96`), 이벤트 없으면 숨김
+- 같은 도구 연속 호출 시 그룹핑 (예: "read_file 3/3 완료")
+- Material Icons + Status Badge (done/active/error)
+
+**레이아웃:**
+- `h-screen` 고정 + 패널별 독립 스크롤
+- 채팅 입력 항상 하단 고정
+
+### Phase 10: Flow 시각화 리디자인
+
+**커밋:** `63c84e8` ~ `a95527d` (7개 커밋)
+
+**세로 레이아웃:**
+- 상→하 세로 흐름 (start → thinking → response → done)
+- 도구 페어링: tool_call(좌) ↔ tool_result(우) 수평 정렬
+
+**ZigzagEdge 커스텀 엣지:**
+- SVG path로 ㄱ자 직각 꺾임 구현
+- 세로/크로스 엣지와 가로 엣지 분리
+
+**전체 화면 모달:**
+- "View Flow Detail" 클릭 시 `backdrop-blur-sm` 모달
+- Glass 스타일 카드, Material Icons, 컬러 코딩
+
+### Phase 11: 랜딩페이지 + UI 한글화 + Claude Code 세팅
+
+**커밋:** `db6d291` 랜딩페이지 + UI 한글화 + Claude Code 프로젝트 세팅
+
+**포트폴리오형 랜딩페이지:**
+- `/` → 랜딩페이지 (Hero, Features, Tech Stack, CTA)
+- `/chat` → 채팅 UI (기존 기능)
+- Scroll-triggered reveal animation (IntersectionObserver)
+- Pretendard 한글 폰트
+
+**전체 UI 한글화:**
+- 34개 텍스트 문자열 영어→한글 전환
+- 도구명: "read_file" → "파일 읽기 (read_file)" 한영 병기
+
+**Claude Code 프로젝트 세팅:**
+- `.claude/hooks.json`: PreToolUse(파괴적 명령 차단) + PostToolUse(tsc 자동 실행)
+- `.claude/settings.json`: allow/deny 도구 권한 경계
+- `.claude/commands/`: `/build`, `/test`, `/check` 커스텀 slash command
+
+### Phase 12: Vitest 테스트
+
+**커밋:** `3775e97` Vitest 테스트 세팅 + 핵심 패키지 단위 테스트 22개
+
+- `@nebula/ai` 15개: 비용 계산(모델별 정확 비용, 엣지케이스), 모델 라우팅
+- `@nebula/agent` 7개: MCP→Gemini 스키마 변환, 이름 매핑, 새니타이제이션
+- 패키지별 독립 테스트 + 루트 통합 실행 (`pnpm test`)
+
+### Phase 13: 도구 이름 한글화 + 대화 도구 사용 요약
+
+**커밋:** `8c620aa` 도구 이름 한글화 + 대화 영역에 도구 사용 요약 표시
+
+- `tool-labels.ts` 공유 유틸: 11개 도구 한영 병기 레이블
+- MessageBubble에 도구 사용 요약 배지 (예: "파일 읽기 ×3")
+- `useAgentStream` 리듀서에서 done 이벤트 시 도구 사용 집계
+
+### Phase 14: Docker + CI/CD 파이프라인
+
+**커밋:** `33a0be2` Docker + CI/CD 파이프라인 세팅
+
+**GitHub Actions CI:**
+- main 브랜치 push/PR 트리거
+- typecheck → test → build 순차 실행
+- pnpm cache 활용
+
+**Docker Multi-stage Build:**
+- API: deps → build → runner 3단계 (prod 의존성 + dist만 포함)
+- Web: Next.js standalone 빌드 + 비루트 유저(`nextjs:nodejs`) 보안 강화
+- Docker Compose: api(4000) + web(3000) 구성
+
+### Phase 15: 보안 강화
+
+**커밋:** `953c646` 보안 강화 — run_command 화이트리스트 + 파일 경로 접근 제어
+
+**run_command 화이트리스트:**
+- 허용 명령어 접두사 (ls, cat, grep, node, git log 등)
+- 차단 패턴 (rm -rf, sudo, chmod, curl|sh 등)
+- Double Layer: 차단 패턴 + 화이트리스트 (방어 깊이)
+
+**Path Guard (파일 접근 제어):**
+- path traversal 방지 (`../../etc/passwd` 차단)
+- 민감 파일 패턴 차단 (`.env`, `.ssh`, `.aws`)
+- `allowedRoot` 기반 경로 범위 제한
+
+**보안 테스트 43개 추가:**
+- path traversal, 파이프 주입, 민감 파일 접근 등 검증
 
 ---
 
@@ -404,14 +474,30 @@ CMD ["node", "apps/api/dist/index.js"]
    - 서버(도구 제공자)와 클라이언트(도구 소비자) 모두 경험
    - 멀티 서버 통합 라우팅이라는 실전 과제 해결
 
-3. **"Claude Code 워크플로우 마스터리"**
+3. **"프로덕션 Agent 패턴"**
+   - Rate limit/서버 에러 자동 분류 + 백오프 재시도
+   - 외부 API 스키마를 LLM 호환 형식으로 변환 (새니타이제이션)
+   - 컨텍스트 윈도우 최적화 — 50K자 초과 시 선택적 트리밍
+
+4. **"보안 아키텍처"**
+   - run_command 화이트리스트 + Path Guard 이중 방어
+   - RCE 취약점 원천 차단 (mcpServers 클라이언트 입력 제거)
+   - 43개 보안 테스트로 공격 시나리오 검증
+
+5. **"Claude Code 워크플로우 마스터리"**
    - AI 도구를 단순 코드 생성이 아닌 설계·검증 파트너로 활용
    - Plan 모드, Agent 위임, Skill 시스템 등 고급 기능 실전 적용
+   - hooks.json + settings.json으로 자동 품질 체크 + 보안 경계
 
-4. **"모노레포 패키지 설계"**
+6. **"모노레포 패키지 설계"**
    - 관심사 분리: AI, Protocol, Agent, Shared
    - 각 패키지 독립 빌드·테스트 → CI 최적화
 
-5. **"스트리밍 기반 실시간 시각화"**
+7. **"스트리밍 기반 실시간 시각화"**
    - SSE + AsyncIterable 패턴
-   - React Flow로 Agent 실행 과정 실시간 표현
+   - React Flow 커스텀 노드/엣지 (ZigzagEdge, Lumina 디자인)
+
+8. **"DevOps 파이프라인"**
+   - Docker multi-stage 빌드 (이미지 최적화)
+   - GitHub Actions CI (typecheck → test → build)
+   - 비루트 유저 실행, .dockerignore 보안
